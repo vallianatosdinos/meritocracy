@@ -2,11 +2,20 @@ name: Deploy prototype
 
 # Publishes the playable build to GitHub Pages.
 #
-# Automatic on main; manual from any branch via the Actions tab ("Run workflow"),
-# which is how you get a playtest link for work that is not merged yet.
+# Automatic on main and on the claude/* working branches, so a change pushed
+# from a Claude session is live on the public URL a couple of minutes later with
+# nothing to click. Also runnable by hand from any branch via the Actions tab.
+#
+# NOTE: deploying from a non-default branch requires the github-pages
+# environment to allow it, once:
+#   Settings -> Environments -> github-pages -> Deployment branches
+#   -> "No restriction" (or add claude/*)
+# Without that, a branch deploy fails with "Branch is not allowed to deploy to
+# github-pages due to environment protection rules." Deploys from main always
+# work.
 on:
   push:
-    branches: [main]
+    branches: [main, 'claude/**']
   workflow_dispatch:
 
 permissions:

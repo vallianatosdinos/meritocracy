@@ -22,23 +22,28 @@ change one of the causes that is still reachable. Most of them are not.
 
 ## Run it
 
+No local setup needed. Every push builds, runs the checks, and publishes to
+GitHub Pages:
+
+**https://vallianatosdinos.github.io/meritocracy/**
+
+Open that on a phone. See [GETTING-STARTED.md](docs/GETTING-STARTED.md) for the
+one-time GitHub settings and for how to run a playtest.
+
+If you do want it locally:
+
 ```bash
 npm install
-npm run dev          # http://localhost:5173 — also serves on your LAN for phone testing
+npm run dev          # http://localhost:5173 — the printed Network URL works on a phone
 npm test             # engine invariants
 npm run validate     # simulate 4,000 lives per strategy and check the design bands
 ```
-
-`npm run dev` binds to `0.0.0.0`, so the printed network URL works on a phone on
-the same wifi. Pushing to `main` publishes the prototype to GitHub Pages; see
-[GETTING-STARTED.md](docs/GETTING-STARTED.md) if you have not deployed anything
-before.
 
 ## Docs
 
 | | |
 |---|---|
-| [GETTING-STARTED.md](docs/GETTING-STARTED.md) | running it, testing on a phone, publishing a playtest link, how to run a playtest |
+| [GETTING-STARTED.md](docs/GETTING-STARTED.md) | publishing, testing on a phone, and how to run a playtest — no local setup required |
 | [DESIGN.md](docs/DESIGN.md) | pillars, the two layers, how the choice/no-choice friction is resolved, tone, open questions |
 | [DATA-MODEL.md](docs/DATA-MODEL.md) | the schema and the authoring rules |
 | [KEY-QUESTION.md](docs/KEY-QUESTION.md) | how to generate life paths that are meaningful, and how to prove one is |

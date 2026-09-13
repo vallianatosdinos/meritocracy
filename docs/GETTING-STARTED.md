@@ -1,126 +1,83 @@
-# Getting started: running, publishing, and playtesting
+# Getting started: publishing and playtesting
 
-Written assuming you have not deployed or playtested a game before. Nothing here
-needs a paid account, an app store, or a developer licence.
+Written for a workflow with **no local setup at all** — the Claude app for
+changes, github.com for everything else, a phone browser for playing. You never
+need a terminal, and you never need the code on your machine.
 
-**The order that matters:** get it on your phone → get it on a URL → put it in
-front of five people → *then* think about stores. Stores are the last 5% of the
-work and the first thing everybody wants to do. Skip them for now; there is a
+**The order that matters:** get it on a URL → open that URL on your phone → put
+it in front of five people → *then* think about stores. Stores are the last 5% of
+the work and the first thing everybody wants to do. Skip them for now; there is a
 section at the end about why.
 
 ---
 
-## 1. Get the code onto your machine
-
-Two installs, once each:
-
-- **Node.js 22 or newer** from [nodejs.org](https://nodejs.org) — take the LTS
-  button.
-- **git**, which macOS offers to install the first time you type `git`. If a
-  popup about developer tools appears, accept it and wait.
-
-Then, in Terminal:
-
-```bash
-cd ~/Documents                                                   # anywhere you like
-git clone https://github.com/vallianatosdinos/meritocracy.git
-cd meritocracy                                                   # <- step INTO the folder
-```
-
-That last line matters more than it looks. Every `npm` command reads
-`package.json` from **whatever folder you are currently standing in**. Running
-`npm install` from your home folder gives you:
+## 1. The loop
 
 ```
-npm error code ENOENT
-npm error Could not read package.json
+you ask Claude for a change
+        ↓
+Claude edits the code and pushes it to GitHub
+        ↓
+CI runs automatically   →  typecheck, engine tests, path validation, build
+        ↓
+Pages deploys automatically  (~2 min)
+        ↓
+you refresh the URL on your phone
 ```
 
-which means "you are in the wrong place", not "something is broken".
+Nothing in that diagram needs a computer of yours. The whole thing happens on
+GitHub's machines.
 
-## 2. Run it on your own machine
+**CI is the part that protects you.** Every push runs `npm run validate`, which
+simulates thousands of lives and **fails the build if a path drifts outside its
+design bands**. If a coefficient tweak accidentally hands the player too much
+free will, the Actions tab goes red before anyone plays it. You do not have to
+remember the thesis; the build remembers it.
 
-```bash
-npm install     # once, ever (and again whenever dependencies change)
-npm run dev
-```
+## 2. One-time setup, then a public URL
 
-You will see something like:
+Two settings on github.com. You only ever do this once.
 
-```
-➜  Local:   http://localhost:5173/
-➜  Network: http://192.168.1.42:5173/
-```
-
-`Local` is for the machine you are sitting at. Leave it running — edit a file,
-save, and the browser updates itself.
-
-`npm run dev` keeps running and does not give you your prompt back — that is
-correct, it is a server. Open a second terminal tab (`Cmd+T`) for other commands.
-To stop it: `Ctrl+C` in that terminal.
-
-## 3. Run it on your phone (30 seconds, no deploy)
-
-That **Network** line is the whole trick. With your phone on the same wifi, type
-that address into its browser. That is the real game, on a real device, with real
-touch targets.
-
-Do this early and often. It is the single highest-value habit in this project,
-because the game is text and the difference between "reads fine" and "reads fine
-on a 6-inch screen at arm's length" is enormous.
-
-If the Network URL does not load: your laptop's firewall is usually the culprit
-(macOS: System Settings → Network → Firewall; allow incoming for Node). Some
-cafe/hotel wifi blocks device-to-device traffic entirely — use a phone hotspot
-instead.
-
-## 4. Put it on a public URL
-
-Set up and committed already: pushing to `main` builds the game and publishes it
-to **GitHub Pages**, free, on a URL anyone can open.
-
-**You do not need anything from sections 1–3 for this.** It all happens on
-github.com, so it is the fastest route to something you can open on a phone.
-
-**One manual step, once** — GitHub cannot be told this from code:
+**A. Turn Pages on**
 
 > Repo → **Settings** → **Pages** → under *Build and deployment*, set
-> **Source: GitHub Actions**.
+> **Source: GitHub Actions**
 
-After that:
+**B. Let working branches publish**
 
-- **Merge to `main`** → it publishes automatically.
-- **Any branch, on demand** → repo → **Actions** tab → *Deploy prototype* →
-  **Run workflow**, pick the branch. This is how you get a link for work that
-  is not merged yet.
+> Repo → **Settings** → **Environments** → **github-pages** →
+> *Deployment branches* → **No restriction**
 
-Your URL will be:
+Without B, only `main` can publish and a branch deploy fails with *"Branch is not
+allowed to deploy to github-pages due to environment protection rules"*. With it,
+anything Claude pushes goes live on its own.
+
+Your URL, from then on:
 
 ```
 https://vallianatosdinos.github.io/meritocracy/
 ```
 
-The first deploy takes a couple of minutes; later ones about one. If the Actions
-tab shows a red X, click into the run — the failing step names itself.
+First deploy takes a couple of minutes, later ones about one. Watch it in the
+**Actions** tab — a green tick means it is live. A red X: click into the run, and
+the step that failed names itself. Paste it to Claude.
 
-### The other workflow
+### Publishing on demand
 
-Every push also runs **CI**: typecheck, engine tests, path validation, build.
-That last one is worth understanding — it simulates thousands of lives and
-**fails the build if a path drifts outside its design bands**. If you tweak a
-coefficient and accidentally hand the player too much free will, CI goes red. The
-thesis is a test, not a matter of taste.
+If you ever want to publish something manually — a specific branch, or a re-run
+after changing a setting:
 
-Run the same checks locally any time:
+> **Actions** tab → *Deploy prototype* → **Run workflow** → pick the branch
 
-```bash
-npm test
-npm run validate
-```
+### Seeing a change on your phone
+
+Open the URL, then **pull down to refresh**. Mobile browsers cache aggressively;
+if you are staring at an old build, close the tab and reopen it, or add `?v=2` to
+the end of the URL.
 
 ---
 
-## 5. Playtesting
+## 3. Playtesting
 
 You need **five people, individually, in the same room as you.** Not a group. Not
 a survey. Five is not a rule of thumb I made up — past about five you stop
@@ -188,7 +145,7 @@ anything. Changing the game after each session means you tune for one person.
 
 ---
 
-## 6. Stores: not yet, and here is why
+## 4. Stores: not yet, and here is why
 
 Everything is already in place for this later (see
 [ROADMAP.md](./ROADMAP.md#platform-plan) — Capacitor for iOS/Android, Tauri for
@@ -210,21 +167,39 @@ anchor act from your notes ever gets built — self-harm all drive age ratings a
 can affect whether storefronts feature you at all. Worth setting a ceiling before
 writing five more paths, not after.
 
-## Cheat sheet
+---
+
+## Appendix: running it on your own machine
+
+You do not need this. It is here for the day you want a change to appear
+instantly instead of two minutes later, or for a collaborator.
+
+Install [Node.js](https://nodejs.org) 22+ and git, then:
 
 ```bash
-npm install        # once
-npm run dev        # play it; Network URL works on your phone
-npm test           # engine invariants
-npm run validate   # simulate thousands of lives, check the design bands
-npm run build      # production build into dist/
+git clone https://github.com/vallianatosdinos/meritocracy.git
+cd meritocracy          # every npm command reads package.json from the folder
+                        # you are standing in -- running npm from your home
+                        # folder gives "Could not read package.json", which
+                        # means "wrong place", not "broken"
+npm install
+npm run dev             # the printed Network URL works on a phone on the same wifi
 ```
+
+| | |
+|---|---|
+| `npm test` | engine invariants |
+| `npm run validate` | simulate thousands of lives, check the design bands |
+| `npm run build` | production build into `dist/` |
+
+---
+
+## Cheat sheet
 
 | I want to… | Do this |
 |---|---|
-| get the code | `git clone`, then **`cd meritocracy`** |
-| play it on my phone | `npm run dev`, open the Network URL |
-| send someone a link | Actions tab → *Deploy prototype* → Run workflow |
-| know if I broke the thesis | `npm run validate` |
-| change how a life feels | `src/content/paths/ten-digits.ts`, then validate |
-| change the maths | `src/engine/tuning.ts`, then validate |
+| change the game | ask Claude |
+| know if a change broke the thesis | **Actions** tab — red X means it did |
+| get it on my phone | open the Pages URL, pull to refresh |
+| publish a specific branch | **Actions** → *Deploy prototype* → Run workflow |
+| know what to change | `src/content/paths/ten-digits.ts` (the life), `src/engine/tuning.ts` (the maths) |
