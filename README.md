@@ -30,12 +30,15 @@ npm run validate     # simulate 4,000 lives per strategy and check the design ba
 ```
 
 `npm run dev` binds to `0.0.0.0`, so the printed network URL works on a phone on
-the same wifi.
+the same wifi. Pushing to `main` publishes the prototype to GitHub Pages; see
+[GETTING-STARTED.md](docs/GETTING-STARTED.md) if you have not deployed anything
+before.
 
 ## Docs
 
 | | |
 |---|---|
+| [GETTING-STARTED.md](docs/GETTING-STARTED.md) | running it, testing on a phone, publishing a playtest link, how to run a playtest |
 | [DESIGN.md](docs/DESIGN.md) | pillars, the two layers, how the choice/no-choice friction is resolved, tone, open questions |
 | [DATA-MODEL.md](docs/DATA-MODEL.md) | the schema and the authoring rules |
 | [KEY-QUESTION.md](docs/KEY-QUESTION.md) | how to generate life paths that are meaningful, and how to prove one is |
