@@ -8,9 +8,39 @@
     />
     <meta name="theme-color" content="#0d0d10" />
     <title>Ten Digits</title>
+    <!--
+      Inline, so the page is never a white void: it paints dark before the
+      stylesheet arrives, and if the script fails to boot it says so instead of
+      showing nothing at all.
+    -->
+    <style>
+      html, body {
+        margin: 0;
+        background: #0d0d10;
+        color: #e8e6e1;
+        font-family: ui-serif, Iowan Old Style, Palatino, Georgia, serif;
+      }
+      .boot {
+        padding: 2rem 1.25rem;
+        color: #5f5d58;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .boot b { display: block; color: #b4564b; margin-bottom: 0.5rem; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot">
+        Loading&hellip;
+        <noscript>
+          <b>This prototype needs JavaScript.</b>
+          Nothing will happen until it is enabled.
+        </noscript>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

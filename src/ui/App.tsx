@@ -108,7 +108,7 @@ export const App = (): JSX.Element => {
           </button>
         </div>
         <p className="tiny">
-          Prototype. Life {seed}. Nothing here is your fault yet.
+          Prototype, build {__BUILD_ID__}. Life {seed}. Nothing here is your fault yet.
         </p>
         <div className="spacer" />
       </div>

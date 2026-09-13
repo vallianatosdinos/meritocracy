@@ -42,10 +42,27 @@ design bands**. If a coefficient tweak accidentally hands the player too much
 free will, the Actions tab goes red before anyone plays it. You do not have to
 remember the thesis; the build remembers it.
 
-## 2. The URL
+## 2. One setting, once
 
-There is no setup. The deploy turns GitHub Pages on by itself the first time it
-runs on `main`.
+> Repo → **Settings** → **Pages** → *Build and deployment* →
+> **Source: GitHub Actions**
+
+**It has to be that option specifically, not "Deploy from a branch".** Those two
+publish completely different things:
+
+| Source | What gets published |
+|---|---|
+| **GitHub Actions** ✅ | `dist/` — the compiled game |
+| Deploy from a branch ❌ | the repository root — raw source files |
+
+"Deploy from a branch" is the default when you switch Pages on, and it is wrong
+for this project. The symptom is a page that looks blank, whose *View Source*
+shows `<script type="module" src="/src/main.tsx">` and no `./assets/…` bundle.
+That is the browser being handed an uncompiled source file it cannot run.
+
+It is also silent: with the wrong source set, **both** publishers run on every
+push to `main`, the deploy in the Actions tab still goes green, and whichever
+finishes last wins. Green checks are not evidence the right thing shipped here.
 
 Your URL, from then on:
 
@@ -56,6 +73,13 @@ https://vallianatosdinos.github.io/meritocracy/
 First deploy takes a couple of minutes, later ones about one. Watch it in the
 **Actions** tab — a green tick means it is live. A red X: click into the run, and
 the step that failed names itself. Paste it to Claude.
+
+The title screen shows a **build stamp** (`build a1b2c3d`) matching the commit it
+was built from. If it has not changed after a deploy, you are looking at a cached
+page, not a failed one — hard refresh (`Cmd+Shift+R`).
+
+If you ever see a run called **"pages build and deployment"** in the Actions tab,
+the Pages source has reverted to branch mode. Fix it with the setting above.
 
 ### Publishing on demand
 
