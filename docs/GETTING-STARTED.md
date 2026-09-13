@@ -10,10 +10,35 @@ section at the end about why.
 
 ---
 
-## 1. Run it on your own machine
+## 1. Get the code onto your machine
 
-You need **Node.js 22 or newer** — one install, from [nodejs.org](https://nodejs.org)
-(take the LTS button). Then, in a terminal, inside the project folder:
+Two installs, once each:
+
+- **Node.js 22 or newer** from [nodejs.org](https://nodejs.org) — take the LTS
+  button.
+- **git**, which macOS offers to install the first time you type `git`. If a
+  popup about developer tools appears, accept it and wait.
+
+Then, in Terminal:
+
+```bash
+cd ~/Documents                                                   # anywhere you like
+git clone https://github.com/vallianatosdinos/meritocracy.git
+cd meritocracy                                                   # <- step INTO the folder
+```
+
+That last line matters more than it looks. Every `npm` command reads
+`package.json` from **whatever folder you are currently standing in**. Running
+`npm install` from your home folder gives you:
+
+```
+npm error code ENOENT
+npm error Could not read package.json
+```
+
+which means "you are in the wrong place", not "something is broken".
+
+## 2. Run it on your own machine
 
 ```bash
 npm install     # once, ever (and again whenever dependencies change)
@@ -30,9 +55,11 @@ You will see something like:
 `Local` is for the machine you are sitting at. Leave it running — edit a file,
 save, and the browser updates itself.
 
+`npm run dev` keeps running and does not give you your prompt back — that is
+correct, it is a server. Open a second terminal tab (`Cmd+T`) for other commands.
 To stop it: `Ctrl+C` in that terminal.
 
-## 2. Run it on your phone (30 seconds, no deploy)
+## 3. Run it on your phone (30 seconds, no deploy)
 
 That **Network** line is the whole trick. With your phone on the same wifi, type
 that address into its browser. That is the real game, on a real device, with real
@@ -47,10 +74,13 @@ If the Network URL does not load: your laptop's firewall is usually the culprit
 cafe/hotel wifi blocks device-to-device traffic entirely — use a phone hotspot
 instead.
 
-## 3. Put it on a public URL
+## 4. Put it on a public URL
 
 Set up and committed already: pushing to `main` builds the game and publishes it
 to **GitHub Pages**, free, on a URL anyone can open.
+
+**You do not need anything from sections 1–3 for this.** It all happens on
+github.com, so it is the fastest route to something you can open on a phone.
 
 **One manual step, once** — GitHub cannot be told this from code:
 
@@ -90,7 +120,7 @@ npm run validate
 
 ---
 
-## 4. Playtesting
+## 5. Playtesting
 
 You need **five people, individually, in the same room as you.** Not a group. Not
 a survey. Five is not a rule of thumb I made up — past about five you stop
@@ -158,7 +188,7 @@ anything. Changing the game after each session means you tune for one person.
 
 ---
 
-## 5. Stores: not yet, and here is why
+## 6. Stores: not yet, and here is why
 
 Everything is already in place for this later (see
 [ROADMAP.md](./ROADMAP.md#platform-plan) — Capacitor for iOS/Android, Tauri for
@@ -192,6 +222,7 @@ npm run build      # production build into dist/
 
 | I want to… | Do this |
 |---|---|
+| get the code | `git clone`, then **`cd meritocracy`** |
 | play it on my phone | `npm run dev`, open the Network URL |
 | send someone a link | Actions tab → *Deploy prototype* → Run workflow |
 | know if I broke the thesis | `npm run validate` |
