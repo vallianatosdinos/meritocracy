@@ -1,0 +1,60 @@
+name: Deploy prototype
+
+# Publishes the playable build to GitHub Pages.
+#
+# Runs on main, so anything that lands there is live a couple of minutes later
+# with nothing to click. Also runnable by hand from any branch via the Actions
+# tab, for a preview of work that has not been merged.
+#
+# Deliberately NOT run on every branch push: a branch deploy is blocked by the
+# github-pages environment's branch rule unless that is relaxed in settings, and
+# a red X on a branch that is otherwise fine is worse than no deploy.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish rather than cancelling it mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npx vite build
+
+      # enablement: true turns Pages on via the API if it is not already on, so
+      # there is no manual Settings -> Pages step. Without it the build fails
+      # with "Get Pages site failed ... verify that the repository has Pages
+      # enabled", which reads like a broken build rather than a missing setting.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
