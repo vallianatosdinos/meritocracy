@@ -22,13 +22,13 @@ change one of the causes that is still reachable. Most of them are not.
 
 ## Run it
 
-No local setup needed. Every push builds, runs the checks, and publishes to
-GitHub Pages:
+No local setup needed. Every push runs the checks; anything landing on `main`
+publishes itself to GitHub Pages:
 
 **https://vallianatosdinos.github.io/meritocracy/**
 
 Open that on a phone. See [GETTING-STARTED.md](docs/GETTING-STARTED.md) for the
-one-time GitHub settings and for how to run a playtest.
+workflow and for how to run a playtest.
 
 If you do want it locally:
 

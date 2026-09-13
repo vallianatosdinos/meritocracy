@@ -2,20 +2,16 @@ name: Deploy prototype
 
 # Publishes the playable build to GitHub Pages.
 #
-# Automatic on main and on the claude/* working branches, so a change pushed
-# from a Claude session is live on the public URL a couple of minutes later with
-# nothing to click. Also runnable by hand from any branch via the Actions tab.
+# Runs on main, so anything that lands there is live a couple of minutes later
+# with nothing to click. Also runnable by hand from any branch via the Actions
+# tab, for a preview of work that has not been merged.
 #
-# NOTE: deploying from a non-default branch requires the github-pages
-# environment to allow it, once:
-#   Settings -> Environments -> github-pages -> Deployment branches
-#   -> "No restriction" (or add claude/*)
-# Without that, a branch deploy fails with "Branch is not allowed to deploy to
-# github-pages due to environment protection rules." Deploys from main always
-# work.
+# Deliberately NOT run on every branch push: a branch deploy is blocked by the
+# github-pages environment's branch rule unless that is relaxed in settings, and
+# a red X on a branch that is otherwise fine is worse than no deploy.
 on:
   push:
-    branches: [main, 'claude/**']
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -42,7 +38,13 @@ jobs:
       - run: npm ci
       - run: npx vite build
 
+      # enablement: true turns Pages on via the API if it is not already on, so
+      # there is no manual Settings -> Pages step. Without it the build fails
+      # with "Get Pages site failed ... verify that the repository has Pages
+      # enabled", which reads like a broken build rather than a missing setting.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

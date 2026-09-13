@@ -28,34 +28,24 @@ you refresh the URL on your phone
 Nothing in that diagram needs a computer of yours. The whole thing happens on
 GitHub's machines.
 
+**Two separate workflows, and it is worth knowing which is which**, because one
+of them going red means something very different from the other:
+
+| Workflow | Runs on | Red means |
+|---|---|---|
+| **CI** (`check`) | every push, every branch | the game is actually broken |
+| **Deploy prototype** (`build` / `deploy`) | `main`, or manually | publishing failed; the game is fine |
+
 **CI is the part that protects you.** Every push runs `npm run validate`, which
 simulates thousands of lives and **fails the build if a path drifts outside its
 design bands**. If a coefficient tweak accidentally hands the player too much
 free will, the Actions tab goes red before anyone plays it. You do not have to
 remember the thesis; the build remembers it.
 
-## 2. One-time setup, then a public URL
+## 2. The URL
 
-**One setting on github.com. You only ever do this once.**
-
-> Repo → **Settings** → **Pages** → under *Build and deployment*, set
-> **Source: GitHub Actions**
-
-That is it. Work lands on `main`, and `main` publishes itself.
-
-<details>
-<summary>Optional: previewing a branch before it reaches main</summary>
-
-Deploys from a branch other than `main` are blocked by default with *"Branch is
-not allowed to deploy to github-pages due to environment protection rules"*. If
-you ever want branch previews:
-
-> Repo → **Settings** → **Environments** → **github-pages** →
-> *Deployment branches* → **No restriction**
-
-Not needed for the normal loop.
-
-</details>
+There is no setup. The deploy turns GitHub Pages on by itself the first time it
+runs on `main`.
 
 Your URL, from then on:
 
@@ -69,10 +59,15 @@ the step that failed names itself. Paste it to Claude.
 
 ### Publishing on demand
 
-If you ever want to publish something manually — a specific branch, or a re-run
-after changing a setting:
+Deploys happen automatically when something lands on `main`. To publish a branch
+that has not been merged yet:
 
 > **Actions** tab → *Deploy prototype* → **Run workflow** → pick the branch
+
+A branch deploy can fail with *"Branch is not allowed to deploy to github-pages
+due to environment protection rules"*. That is a setting, not a bug:
+**Settings → Environments → github-pages → Deployment branches → No
+restriction**. Not needed for the normal loop.
 
 ### Seeing a change on your phone
 
