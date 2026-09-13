@@ -16,7 +16,7 @@ section at the end about why.
 ```
 you ask Claude for a change
         ↓
-Claude edits the code and pushes it to GitHub
+Claude edits the code and pushes it to main
         ↓
 CI runs automatically   →  typecheck, engine tests, path validation, build
         ↓
@@ -36,21 +36,26 @@ remember the thesis; the build remembers it.
 
 ## 2. One-time setup, then a public URL
 
-Two settings on github.com. You only ever do this once.
-
-**A. Turn Pages on**
+**One setting on github.com. You only ever do this once.**
 
 > Repo → **Settings** → **Pages** → under *Build and deployment*, set
 > **Source: GitHub Actions**
 
-**B. Let working branches publish**
+That is it. Work lands on `main`, and `main` publishes itself.
+
+<details>
+<summary>Optional: previewing a branch before it reaches main</summary>
+
+Deploys from a branch other than `main` are blocked by default with *"Branch is
+not allowed to deploy to github-pages due to environment protection rules"*. If
+you ever want branch previews:
 
 > Repo → **Settings** → **Environments** → **github-pages** →
 > *Deployment branches* → **No restriction**
 
-Without B, only `main` can publish and a branch deploy fails with *"Branch is not
-allowed to deploy to github-pages due to environment protection rules"*. With it,
-anything Claude pushes goes live on its own.
+Not needed for the normal loop.
+
+</details>
 
 Your URL, from then on:
 
