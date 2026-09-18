@@ -86,9 +86,9 @@ side is the **tendency**; the gap is the **resistance** of the other path.
   - **impossible** — nothing happens at all. There is no arrangement of *this*
     life in which that act occurs tonight.
 
-None of this is shown before you choose. The only tell is that the tendency
-button is rendered 1.5% larger and one step warmer. Players pick it and report
-having chosen freely.
+None of this is shown before you choose. The only tell is that the tendency arm
+is rendered 1.5% larger and one step warmer. Players pick it and report having
+chosen freely.
 
 ### Confabulation
 
@@ -103,6 +103,39 @@ first-person justification for the thing she did instead:
 This is the split-brain result as a feedback message, and it is the single most
 important beat in the game. You watched yourself press a button. She did not.
 She has an explanation, and she is not lying.
+
+## One space, three distances
+
+There is no scene screen, no receipt screen and no timeline screen. There is one
+canvas holding her whole life, and those three are three distances from it —
+*moment*, *around*, *life* — animated and anchored on the fork in question, so
+the player can always tell where they went.
+
+**A life is a chain of diamonds.** That shape is not decoration, it is what the
+model is: the sequence of forks is fixed, so a choice changes what happens at a
+fork, never which fork comes next. Each fork therefore splits and rejoins.
+
+**The receipt lives on the arms.** The engine produces one signed list of
+contributions; positive pulls toward one option, negative toward the other. Put
+each cause on the arm it pulls toward and a table becomes a picture of a decision
+being made — same numbers, same sum.
+
+**A parallel life is a different traversal of the same chain**, drawn in cold
+blue against the active path's warm gold. Which gives the four fork states:
+
+| | lived | not lived |
+|---|---|---|
+| **active** | gold — her past | not drawn |
+| **parallel** | blue — a life stepped out of, running on ahead | not drawn |
+
+The road not taken is *literally not there* until you go back and take it. That
+is not a rendering shortcut; it is the claim.
+
+**What is never drawn on an undecided fork:** cost, feasibility, pull shares,
+which arm is the tendency. All of it appears the instant the press lands and
+stays forever after — which is roughly when a person gets to learn what a choice
+of theirs cost. Revealing it a moment earlier would replace the central illusion
+with a difficulty meter.
 
 ## ⚠ The energy mechanic nearly argues the opposite thing
 
