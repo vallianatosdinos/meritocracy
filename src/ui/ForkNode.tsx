@@ -5,20 +5,21 @@ import {
   type ForkAppraisal,
   type ForkRecord,
 } from '../engine'
-import type { ForkFacts } from './branches'
-import { ARM_MID_LOCAL, armX, forkTop, FORK_H, STEM_H } from './layout'
+import type { RowView } from './branches'
+import { ARM_MID_LOCAL, armX, forkTop, FORK_H, laneX, STEM_H } from './layout'
 import { pullShare, splitPulls, type ArmPull } from './pulls'
 import type { Zoom } from './layout'
 
 interface Props {
   fork: Fork
-  facts: ForkFacts
-  /** Appraisal of the fork: from the record if lived, from peek() if current. */
+  row: RowView
+  /** From the record if lived, from peek() if this is the undecided fork. */
   appraisal: ForkAppraisal | null
-  record: ForkRecord | null
   zoom: Zoom
+  /** One label per row is enough; the focused lane carries it. */
+  showStem: boolean
   focused: boolean
-  /** Hindsight this step-back would cost, and whether she can pay it. */
+  /** Hindsight a step back to here would cost, and whether it can be paid. */
   stepBack: { cost: number; affordable: boolean } | null
   onChoose: (arm: 0 | 1) => void
   onTryOther: (arm: 0 | 1) => void
@@ -63,63 +64,57 @@ const ArmDetail = ({ pull }: { pull: ArmPull }): JSX.Element => {
 }
 
 /**
- * One fork: a stem card and two arm cards hung on the diamond.
+ * One fork, in one life's lane.
  *
- * Note what is deliberately absent from an unresolved fork: cost, feasibility
- * and which arm is the tendency. Showing those before the press would replace
- * the game's central illusion with a menu. They appear the moment the fork is
- * behind her -- which is exactly when a person gets to know what a choice cost
- * them.
+ * Note what is absent from an undecided fork: cost, feasibility, pull shares,
+ * which arm is the tendency. Showing those before the press would replace the
+ * central illusion with a menu. They appear the instant the fork is behind her,
+ * which is also roughly when a person gets to know what a choice cost them.
  */
 export const ForkNode = ({
   fork,
-  facts,
+  row,
   appraisal,
-  record,
   zoom,
+  showStem,
   focused,
   stepBack,
   onChoose,
   onTryOther,
   onFocus,
-}: Props): JSX.Element | null => {
-  if (!facts.visible) return null
-
+}: Props): JSX.Element => {
+  const record: ForkRecord | null = row.record
   const lived = record !== null
   const pulls = appraisal ? splitPulls(appraisal) : null
   const labels = zoom !== 'life'
-  /**
-   * The anatomy of a fork -- its pulls, its costs, which arm was the tendency --
-   * appears only once the fork is behind her.
-   *
-   * Showing it on the undecided fork would turn the central illusion into a
-   * difficulty meter: the player would be reading the answer rather than
-   * choosing and then discovering they never were. Everything is revealed the
-   * instant the press lands, and stays revealed forever after, which is also
-   * roughly when a person gets to learn what a choice of theirs cost.
-   */
   const anatomy = lived && labels
   const detail = anatomy && zoom === 'moment' && focused
+  const localX = (x: number): number => x - laneX(row.lane) + laneX(row.lane)
 
   const arm = (index: 0 | 1): JSX.Element | null => {
-    const a = facts.arms[index]
     const opt = fork.options[index]
+    const taken = lived && record.resolvedIndex === index
+    const appraised = appraisal?.options[index]
+    const isTendency = appraised?.isTendency === true
+    const pull = pulls?.[index]
+    const pressedButNotTaken =
+      lived && record.confabulated && record.intent.optionIndex === index
 
     /*
      * The road not taken, on request.
      *
-     * At rest an arm nobody walked is not drawn -- that is the claim, and it
-     * holds. But then a fork she has already passed looks like a plain curve,
-     * and a player has no way to learn that going back is a thing the game does.
-     * So inspecting a lived fork -- the deliberate act of asking what else was
-     * there -- reveals it, dashed, with the one control that acts on it.
+     * At rest an arm nobody walked is not drawn -- that is the claim. But a
+     * fork already passed would then look like a plain curve, and a player has
+     * no way to learn that going back is a thing the game does. So inspecting
+     * one reveals the other arm, dashed, with the single control that acts on
+     * it.
      */
-    if (a.state === 'unlived') {
-      if (!lived || !focused || zoom === 'life' || !stepBack) return null
+    if (lived && !taken) {
+      if (!focused || zoom === 'life' || !stepBack) return null
       return (
         <div
           className={`arm-card ghost${stepBack.affordable ? '' : ' unaffordable'}`}
-          style={{ left: armX(index), top: ARM_MID_LOCAL }}
+          style={{ left: localX(armX(row.lane, index)), top: ARM_MID_LOCAL }}
           role="button"
           tabIndex={0}
           onClick={() => stepBack.affordable && onTryOther(index)}
@@ -134,17 +129,13 @@ export const ForkNode = ({
       )
     }
 
-    const taken = lived && record.resolvedIndex === index
-    const appraised = appraisal?.options[index]
-    const isTendency = appraised?.isTendency === true
-    const pull = pulls?.[index]
-
     if (zoom === 'life') {
-      // At life distance the cards would be empty boxes. Only the shape reads.
       return (
         <div
-          className={`arm-dot is-${a.state}${taken ? ' taken' : ''}`}
-          style={{ left: armX(index), top: ARM_MID_LOCAL }}
+          className={`arm-dot${taken ? ' taken' : ''}${row.isActive ? ' active' : ' parallel'}${
+            row.isOpen ? ' open' : ''
+          }`}
+          style={{ left: localX(armX(row.lane, index)), top: ARM_MID_LOCAL }}
           onClick={onFocus}
         />
       )
@@ -152,56 +143,47 @@ export const ForkNode = ({
 
     const classes = [
       'arm-card',
-      `is-${a.state}`,
+      row.isOpen ? 'is-open' : row.isActive ? 'is-active' : 'is-parallel',
+      taken ? 'taken' : '',
+      pressedButNotTaken ? 'pressed' : '',
+      detail ? 'detailed' : '',
       /*
        * The nudge. On an undecided fork the tendency arm is 1.5% larger and one
        * step warmer, and nothing else marks it. Players pick it and report
-       * having chosen freely, which is the entire design -- so it survives the
-       * move to the canvas unchanged.
+       * having chosen freely, which is the entire design.
        */
-      a.state === 'open' && isTendency ? 'lean' : '',
-      taken ? 'taken' : '',
-      lived && !taken ? 'untaken' : '',
-      a.pressedButNotTaken ? 'pressed' : '',
-      detail ? 'detailed' : '',
+      row.isOpen && isTendency ? 'lean' : '',
     ]
       .filter(Boolean)
       .join(' ')
 
-    const clickable = facts.isCurrent && a.state === 'open'
-
     return (
       <div
         className={classes}
-        /*
-         * A detailed card is tall and variable, so it hangs from a fixed point
-         * below the prose rather than centring on the arm -- centring makes it
-         * grow upward into the scene text.
-         */
         style={
           detail
-            ? { left: armX(index), top: STEM_H + 10, transform: 'translate(-50%, 0)' }
-            : { left: armX(index), top: ARM_MID_LOCAL }
+            ? {
+                left: localX(armX(row.lane, index)),
+                top: STEM_H + 10,
+                transform: 'translate(-50%, 0)',
+              }
+            : { left: localX(armX(row.lane, index)), top: ARM_MID_LOCAL }
         }
-        onClick={clickable ? () => onChoose(index) : onFocus}
-        role={clickable ? 'button' : undefined}
-        tabIndex={clickable ? 0 : undefined}
+        onClick={row.isOpen ? () => onChoose(index) : onFocus}
+        role={row.isOpen ? 'button' : undefined}
+        tabIndex={row.isOpen ? 0 : undefined}
       >
-        {labels && <div className="arm-label">{opt.label}</div>}
+        <div className="arm-label">{opt.label}</div>
 
-        {/* The tendency this fork's history creates, as a share of its own pull. */}
         {pulls && anatomy && (
           <div className="arm-pull" title="How hard her history pushes this way">
             <span className="arm-bar">
               <span style={{ width: `${Math.round(pullShare(pulls, index) * 100)}%` }} />
             </span>
-            {/* A share, not a raw total: "89.6" of nothing is not a number a
-                player can read, "78%" of the force at this fork is. */}
             <span className="arm-total">{Math.round(pullShare(pulls, index) * 100)}%</span>
           </div>
         )}
 
-        {/* Cost is a fact about a decision already made. Never a preview. */}
         {anatomy && appraised && (
           <div className="arm-cost">
             {isTendency ? (
@@ -217,10 +199,10 @@ export const ForkNode = ({
           </div>
         )}
 
-        {a.pressedButNotTaken && anatomy && (
-          <div className="arm-pressed">you pressed this</div>
+        {pressedButNotTaken && anatomy && <div className="arm-pressed">you pressed this</div>}
+        {taken && row.sameAsParent && anatomy && (
+          <div className="arm-same">you went back &mdash; she did it anyway</div>
         )}
-
         {detail && pull && <ArmDetail pull={pull} />}
       </div>
     )
@@ -228,17 +210,25 @@ export const ForkNode = ({
 
   return (
     <div
-      className={`fork-node${facts.isCurrent ? ' current' : ''}${focused ? ' focused' : ''}`}
-      style={{ top: forkTop(facts.index), height: FORK_H }}
+      className={`fork-node${row.isOpen ? ' current' : ''}${focused ? ' focused' : ''}`}
+      style={{ top: forkTop(row.index), height: FORK_H }}
     >
-      {labels ? (
-        <div className={`stem-card${facts.isCurrent ? ' current' : ''}`} onClick={onFocus}>
+      {showStem && labels && (
+        <div
+          className={`stem-card${row.isOpen ? ' current' : ''}${row.isActive ? '' : ' parallel'}`}
+          style={{ left: laneX(row.lane) }}
+          onClick={onFocus}
+        >
           <span className="stem-scale">{SCALE_SHORT[fork.scale]}</span>
           <span className="stem-when">{fork.when}</span>
-          {facts.isCurrent && <span className="stem-now">now</span>}
+          {row.isOpen && <span className="stem-now">now</span>}
         </div>
-      ) : null}
-      {zoom === 'moment' && focused && <p className="stem-prose">{fork.prose}</p>}
+      )}
+      {zoom === 'moment' && focused && (
+        <p className="stem-prose" style={{ left: laneX(row.lane) }}>
+          {fork.prose}
+        </p>
+      )}
       {arm(0)}
       {arm(1)}
     </div>

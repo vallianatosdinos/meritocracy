@@ -3,15 +3,16 @@ import { GAME, getPath } from '../content'
 import { diffRuns, rewindCost, simulate, type Divergence } from '../engine'
 import {
   activeBranch,
+  buildTree,
   forkOff,
   initialBranches,
   pushIntent,
-  readForks,
   runAll,
   type BranchState,
+  type RowView,
 } from './branches'
 import { Hud } from './Hud'
-import { LifeCanvas } from './LifeCanvas'
+import { LifeCanvas, type Focus } from './LifeCanvas'
 import { RollItem } from './Roll'
 import type { Zoom } from './layout'
 
@@ -28,19 +29,19 @@ export const App = (): JSX.Element => {
   const [revealed, setRevealed] = useState(0)
   const [hindsightSpent, setHindsightSpent] = useState(0)
   const [zoom, setZoom] = useState<Zoom>('moment')
-  const [focusIndex, setFocusIndex] = useState(0)
+  /** Focus is a fork in a particular life, now that lives sit side by side. */
+  const [focus, setFocus] = useState<Focus>({ branchId: 'b0', index: 0 })
   /** Set right after a press, so the outcome gets read before the next fork. */
   const [justResolved, setJustResolved] = useState<number | null>(null)
   const [divergences, setDivergences] = useState<Divergence[] | null>(null)
 
   const runs = useMemo(() => runAll(PATH, seed, branchState), [seed, branchState])
   const activeRun = runs.get(branchState.activeId)!
-  const facts = useMemo(
-    () => readForks(PATH, runs, branchState.activeId),
-    [runs, branchState.activeId],
-  )
+  const tree = useMemo(() => buildTree(PATH, runs, branchState), [runs, branchState])
   const hindsightLeft = Math.max(0, activeRun.resources.hindsight - hindsightSpent)
-  const focusRecord = activeRun.records[focusIndex] ?? null
+  const focusRun = runs.get(focus.branchId) ?? activeRun
+  const focusRecord = focusRun.records[focus.index] ?? null
+  const focusIsActiveLife = focus.branchId === branchState.activeId
 
   const reset = (): void => {
     setSeed(newSeed())
@@ -49,7 +50,7 @@ export const App = (): JSX.Element => {
     setRevealed(0)
     setHindsightSpent(0)
     setZoom('moment')
-    setFocusIndex(0)
+    setFocus({ branchId: 'b0', index: 0 })
     setJustResolved(null)
     setDivergences(null)
   }
@@ -58,7 +59,7 @@ export const App = (): JSX.Element => {
     const at = activeRun.cursor
     setBranchState((s) => pushIntent(s, { optionIndex: arm }))
     setJustResolved(at)
-    setFocusIndex(at)
+    setFocus({ branchId: branchState.activeId, index: at })
     setZoom('moment')
     setDivergences(null)
   }
@@ -72,7 +73,7 @@ export const App = (): JSX.Element => {
       setPhase('epilogue')
       return
     }
-    setFocusIndex(next)
+    setFocus({ branchId: branchState.activeId, index: next })
     setZoom('moment')
   }
 
@@ -80,8 +81,11 @@ export const App = (): JSX.Element => {
     const cost = rewindCost(activeRun.cursor, index)
     if (cost > hindsightLeft) return
     setHindsightSpent((n) => n + cost)
-    setBranchState((s) => forkOff(s, index))
-    setFocusIndex(index)
+    setBranchState((s) => {
+      const next = forkOff(s, index)
+      setFocus({ branchId: next.activeId, index })
+      return next
+    })
     setJustResolved(null)
     setDivergences(null)
     setZoom('moment')
@@ -99,17 +103,26 @@ export const App = (): JSX.Element => {
     const cost = rewindCost(activeRun.cursor, index)
     if (cost > hindsightLeft) return
     setHindsightSpent((n) => n + cost)
-    setBranchState((s) => pushIntent(forkOff(s, index), { optionIndex: arm }))
-    setFocusIndex(index)
+    setBranchState((s) => {
+      const next = pushIntent(forkOff(s, index), { optionIndex: arm })
+      setFocus({ branchId: next.activeId, index })
+      return next
+    })
     setJustResolved(index)
     setDivergences(null)
     setZoom('moment')
     setPhase('play')
   }
 
-  const stepBackFor = (index: number): { cost: number; affordable: boolean } | null => {
-    if (index >= activeRun.cursor) return null
-    const cost = rewindCost(activeRun.cursor, index)
+  /**
+   * Stepping back happens within the life the player is in. A fork in a life
+   * they left can be read, but branching from it again is a different mechanic
+   * and is not built.
+   */
+  const stepBackFor = (row: RowView): { cost: number; affordable: boolean } | null => {
+    if (!row.isActive || row.branchId !== branchState.activeId) return null
+    if (row.index >= activeRun.cursor) return null
+    const cost = rewindCost(activeRun.cursor, row.index)
     return { cost, affordable: cost <= hindsightLeft }
   }
 
@@ -213,9 +226,10 @@ export const App = (): JSX.Element => {
 
   /* ------------------------- play and epilogue ------------------------- */
   const resolvedRecord = justResolved !== null ? activeRun.records[justResolved] ?? null : null
-  const focusedFork = PATH.forks[focusIndex]
-  const canStepBack = focusRecord !== null && focusIndex < activeRun.cursor
-  const stepCost = canStepBack ? rewindCost(activeRun.cursor, focusIndex) : 0
+  const focusedFork = PATH.forks[focus.index]
+  const canStepBack =
+    focusRecord !== null && focusIsActiveLife && focus.index < activeRun.cursor
+  const stepCost = canStepBack ? rewindCost(activeRun.cursor, focus.index) : 0
   const sameAgain = sameAgainCount()
 
   return (
@@ -229,15 +243,16 @@ export const App = (): JSX.Element => {
 
       <LifeCanvas
         path={PATH}
-        facts={facts}
-        activeRun={activeRun}
+        tree={tree}
+        runs={runs}
+        activeId={branchState.activeId}
         zoom={zoom}
-        focusIndex={focusIndex}
+        focus={focus}
         onChoose={choose}
         onTryOther={tryOther}
         stepBackFor={stepBackFor}
-        onFocus={(i) => {
-          setFocusIndex(i)
+        onFocus={(f) => {
+          setFocus(f)
           // Zooming in on every tap would make the map unusable for browsing.
           // Life distance stays put; the closer framings inspect what you tapped.
           if (zoom === 'life') setZoom('near')
@@ -296,8 +311,8 @@ export const App = (): JSX.Element => {
           </div>
         )}
 
-        {!resolvedRecord && phase === 'play' && zoom === 'moment' &&
-          focusIndex === activeRun.cursor && focusedFork && (
+        {!resolvedRecord && phase === 'play' && zoom === 'moment' && focusIsActiveLife &&
+          focus.index === activeRun.cursor && focusedFork && (
             <p className="hint">{focusedFork.when} &mdash; two ways out. Pick one.</p>
           )}
 
@@ -311,7 +326,7 @@ export const App = (): JSX.Element => {
         )}
 
         {!canStepBack && phase === 'play' && activeRun.cursor > 0 && justResolved === null &&
-          focusIndex === activeRun.cursor && (
+          focusIsActiveLife && focus.index === activeRun.cursor && (
             <p className="hint">Tap anything behind her to look at why, and to go back to it.</p>
           )}
 
@@ -325,7 +340,7 @@ export const App = (): JSX.Element => {
             <button
               className="act primary"
               disabled={stepCost > hindsightLeft}
-              onClick={() => stepBackTo(focusIndex)}
+              onClick={() => stepBackTo(focus.index)}
             >
               {stepCost > hindsightLeft
                 ? `Needs ${stepCost} hindsight`
@@ -337,11 +352,13 @@ export const App = (): JSX.Element => {
               Press the same {sameAgain} again
             </button>
           )}
-          {!resolvedRecord && focusIndex !== activeRun.cursor && phase === 'play' && (
+          {!resolvedRecord &&
+            !(focusIsActiveLife && focus.index === activeRun.cursor) &&
+            phase === 'play' && (
             <button
               className="act"
               onClick={() => {
-                setFocusIndex(activeRun.cursor)
+                setFocus({ branchId: branchState.activeId, index: activeRun.cursor })
                 setZoom('moment')
               }}
             >

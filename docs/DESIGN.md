@@ -111,33 +111,27 @@ canvas holding her whole life, and those three are three distances from it —
 *moment*, *around*, *life* — animated and anchored on the fork in question, so
 the player can always tell where they went.
 
-**A life is a chain of diamonds.** That shape is not decoration, it is what the
-model is: the sequence of forks is fixed, so a choice changes what happens at a
-fork, never which fork comes next. Each fork therefore splits and rejoins.
+**A life is a column; a life you stepped out of is the column beside it.**
+Branches keep their own lanes and never rejoin, but the *rows* are shared: row N
+is fork N in every lane. So the same fork, reached by two different pasts, sits
+side by side at the same height — same question, different person arriving at
+it, with a different tendency and a different price.
+
+That repetition is the point, not a redundancy to design away. The forks do not
+change; who reaches them does. Reading that horizontally is the argument in one
+picture, and it is the one thing a single merged timeline cannot show.
 
 **The receipt lives on the arms.** The engine produces one signed list of
 contributions; positive pulls toward one option, negative toward the other. Put
 each cause on the arm it pulls toward and a table becomes a picture of a decision
 being made — same numbers, same sum.
 
-**The three distances each do one job**, or they should not exist:
-
-| | shows |
-|---|---|
-| **moment** | one fork, with every cause weighing on it |
-| **recent** | a fixed three-fork window — how she got here |
-| **life** | everything lived, shape and ladder rungs only |
-
-`recent` holds its window as the life grows while `life` keeps shrinking; that
-divergence is the only thing that earns the middle framing a place.
-
-**A parallel life is a different traversal of the same chain**, drawn in cold
-blue against the active path's warm gold. Which gives the four fork states:
+The four fork states follow:
 
 | | lived | not lived |
 |---|---|---|
 | **active** | gold — her past | not drawn |
-| **parallel** | blue — a life stepped out of, running on ahead | not drawn |
+| **parallel** | blue — a life stepped out of, in its own lane | not drawn |
 
 The road not taken is *literally not there* until you go back and take it. That
 is not a rendering shortcut; it is the claim.
@@ -148,6 +142,11 @@ game does. So focusing a lived fork — the deliberate act of asking what else w
 there — reveals the other arm, dashed, carrying the one control that acts on it:
 *go back and try this · N*. One tap, because stepping back and then pressing was
 two separate discoveries and players only ever made the first by accident.
+
+**A branch can come out identical**, when the press failed or was never in
+reach: a second lane running the same life. That is the purest statement the
+game makes and it is unreadable unless said out loud, so the branch row says
+*you went back — she did it anyway*.
 
 **What is never drawn on an undecided fork:** cost, feasibility, pull shares,
 which arm is the tendency. All of it appears the instant the press lands and

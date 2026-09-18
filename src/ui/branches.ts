@@ -1,4 +1,10 @@
-import { simulate, type Intent, type LifePath, type RunResult } from '../engine'
+import {
+  simulate,
+  type ForkRecord,
+  type Intent,
+  type LifePath,
+  type RunResult,
+} from '../engine'
 
 /**
  * Branch bookkeeping.
@@ -61,73 +67,123 @@ export const forkOff = (s: BranchState, atIndex: number): BranchState => {
 export const runAll = (path: LifePath, seed: number, s: BranchState): Map<string, RunResult> =>
   new Map(s.branches.map((b) => [b.id, simulate(path, seed, b.intents)]))
 
-export type ArmState =
-  /** The life the player is in went this way. */
-  | 'active'
-  /** A life the player has lived and stepped out of went this way. */
-  | 'parallel'
-  /** The fork in front of them. Neither arm taken yet. */
-  | 'open'
-  /** Nobody has ever been here. Not drawn. */
-  | 'unlived'
+/* ------------------------------------------------------------------ *
+ * The tree, as rows to draw.
+ *
+ * Each branch owns a lane and keeps it. A branch's rows before it diverged are
+ * not drawn -- they are literally the parent's rows, the same intents on the
+ * same seed -- so shared history is drawn once and the tree splits exactly
+ * where the lives did.
+ * ------------------------------------------------------------------ */
 
-export interface ArmFacts {
-  state: ArmState
-  /** True when the player pressed this arm and the character did something else. */
-  pressedButNotTaken: boolean
+export interface RowView {
+  key: string
+  branchId: string
+  index: number
+  lane: number
+  /** Lane the incoming line arrives from. Differs only on a branch's first row. */
+  fromLane: number
+  record: ForkRecord | null
+  /** The undecided fork at the head of the life the player is in. */
+  isOpen: boolean
+  /** On the path the player is currently living, as opposed to one they left. */
+  isActive: boolean
+  /** Only one lane draws the time-and-place card for a row. */
+  drawStem: boolean
+  /**
+   * Set on a branch's first row when she did the same thing anyway.
+   *
+   * Going back and pressing the other arm always starts a new life, but the
+   * press can fail or never have been in reach -- and then the new life is the
+   * old life, running in its own lane. That is the purest statement the game
+   * makes, and it is unreadable unless it is said out loud.
+   */
+  sameAsParent: boolean
 }
 
-export interface ForkFacts {
-  index: number
-  arms: [ArmFacts, ArmFacts]
-  /** Any arm visible at all. */
-  visible: boolean
-  /** This is the fork awaiting a decision on the active path. */
-  isCurrent: boolean
+export interface Tree {
+  rows: RowView[]
+  lanes: number
+  rowCount: number
+  laneOf: Map<string, number>
 }
 
 /**
- * Fold every branch into per-fork, per-arm visibility.
+ * Which rows are on the life the player is in.
  *
- * The four states in the brief fall out of two questions asked of each arm:
- * has anyone been down it, and is the life the player is in down it now.
+ * The active life is not one branch: it is the chain from the root down to the
+ * active branch, and it occupies each ancestor only up to the point the chain
+ * left it. Shared history therefore stays lit all the way back to birth, and
+ * the abandoned continuations below each split go cold.
  */
-export const readForks = (
-  path: LifePath,
-  runs: Map<string, RunResult>,
-  activeId: string,
-): ForkFacts[] => {
-  const active = runs.get(activeId)
-  if (!active) throw new Error('active run missing')
+const activeLineage = (s: BranchState): Map<string, number> => {
+  const byId = new Map(s.branches.map((b) => [b.id, b]))
+  const bound = new Map<string, number>()
+  let cur = byId.get(s.activeId)
+  bound.set(s.activeId, Number.POSITIVE_INFINITY)
+  while (cur?.parentId) {
+    const parent = byId.get(cur.parentId)
+    if (!parent) break
+    bound.set(parent.id, cur.divergedAt ?? 0)
+    cur = parent
+  }
+  return bound
+}
 
-  return path.forks.map((_, index) => {
-    const isCurrent = index === active.cursor
-    const arms: [ArmFacts, ArmFacts] = [
-      { state: 'unlived', pressedButNotTaken: false },
-      { state: 'unlived', pressedButNotTaken: false },
-    ]
+export const buildTree = (path: LifePath, runs: Map<string, RunResult>, s: BranchState): Tree => {
+  const laneOf = new Map(s.branches.map((b, i) => [b.id, i]))
+  const lineage = activeLineage(s)
+  const rows: RowView[] = []
+  let rowCount = 1
 
-    for (const [id, run] of runs) {
-      const rec = run.records[index]
-      if (!rec) continue
-      const arm = arms[rec.resolvedIndex]
-      if (id === activeId) {
-        arm.state = 'active'
-        if (rec.confabulated) arms[rec.intent.optionIndex].pressedButNotTaken = true
-      } else if (arm.state !== 'active') {
-        arm.state = 'parallel'
-      }
+  for (const b of s.branches) {
+    const run = runs.get(b.id)
+    const lane = laneOf.get(b.id)
+    if (!run || lane === undefined) continue
+    const from = b.divergedAt ?? 0
+    const parentLane = b.parentId !== null ? (laneOf.get(b.parentId) ?? lane) : lane
+    const activeBound = lineage.get(b.id) ?? -1
+
+    const parentRun = b.parentId !== null ? runs.get(b.parentId) : undefined
+
+    for (let i = from; i < run.records.length; i++) {
+      const record = run.records[i]
+      if (!record) continue
+      const parentRecord = i === from ? parentRun?.records[i] : undefined
+      rows.push({
+        key: `${b.id}:${i}`,
+        branchId: b.id,
+        index: i,
+        lane,
+        fromLane: i === from ? parentLane : lane,
+        record,
+        isOpen: false,
+        isActive: i < activeBound,
+        drawStem: i !== from || b.parentId === null,
+        sameAsParent:
+          parentRecord !== undefined && parentRecord.resolvedIndex === record.resolvedIndex,
+      })
+      rowCount = Math.max(rowCount, i + 1)
     }
 
-    if (isCurrent) {
-      for (const arm of arms) if (arm.state === 'unlived') arm.state = 'open'
+    // Only the life the player is in shows its undecided fork. The head of a
+    // life they walked away from is a road nobody has been down.
+    if (b.id === s.activeId && run.cursor < path.forks.length) {
+      rows.push({
+        key: `${b.id}:${run.cursor}:open`,
+        branchId: b.id,
+        index: run.cursor,
+        lane,
+        fromLane: run.cursor === from ? parentLane : lane,
+        record: null,
+        isOpen: true,
+        isActive: true,
+        drawStem: run.cursor !== from || b.parentId === null,
+        sameAsParent: false,
+      })
+      rowCount = Math.max(rowCount, run.cursor + 1)
     }
+  }
 
-    return {
-      index,
-      arms,
-      isCurrent,
-      visible: arms.some((a) => a.state !== 'unlived'),
-    }
-  })
+  return { rows, lanes: s.branches.length, rowCount, laneOf }
 }

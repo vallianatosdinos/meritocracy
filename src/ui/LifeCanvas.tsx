@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react'
-import { appraiseFork, SCALE_LABELS, SCALE_SHORT, type LifePath, type RunResult } from '../engine'
-import type { ForkFacts } from './branches'
+import {
+  appraiseFork,
+  peek,
+  SCALE_LABELS,
+  SCALE_SHORT,
+  type LifePath,
+  type RunResult,
+} from '../engine'
+import type { RowView, Tree } from './branches'
 import { ForkNode } from './ForkNode'
 import {
-  armMidY,
   armPath,
-  CANVAS_W,
+  ARM_MID_LOCAL,
   canvasHeight,
+  canvasWidth,
+  forkTop,
   stemPath,
   zoomTransform,
   type Zoom,
@@ -29,108 +37,126 @@ const useViewport = (): { width: number; height: number } => {
   return vp
 }
 
+export interface Focus {
+  branchId: string
+  index: number
+}
+
 interface Props {
   path: LifePath
-  facts: ForkFacts[]
-  activeRun: RunResult
+  tree: Tree
+  runs: Map<string, RunResult>
+  activeId: string
   zoom: Zoom
-  focusIndex: number
+  focus: Focus
   onChoose: (arm: 0 | 1) => void
   onTryOther: (index: number, arm: 0 | 1) => void
-  onFocus: (index: number) => void
-  /** Cost of stepping back to a given fork, and whether it is affordable. */
-  stepBackFor: (index: number) => { cost: number; affordable: boolean } | null
+  onFocus: (focus: Focus) => void
+  stepBackFor: (row: RowView) => { cost: number; affordable: boolean } | null
 }
 
 /**
  * The whole game, in one space.
  *
  * There is no separate scene screen, receipt screen and timeline screen: there
- * is one canvas holding her entire life, and the three former screens are three
- * distances from it. Zooming is animated and anchored on the fork in question,
- * so the player can always tell where they went.
+ * is one canvas holding every life the player has lived, and those three are
+ * three distances from it. Lives run in parallel lanes sharing a row per fork,
+ * so the same decision reached by two different pasts can be read side by side.
  */
 export const LifeCanvas = ({
   path,
-  facts,
-  activeRun,
+  tree,
+  runs,
+  activeId,
   zoom,
-  focusIndex,
+  focus,
   onChoose,
   onTryOther,
   onFocus,
   stepBackFor,
 }: Props): JSX.Element => {
   const vp = useViewport()
-  const n = path.forks.length
-  /** Forks nobody has reached are not drawn, so they do not get framed either. */
-  const extent = facts.reduce((max, f) => (f.visible ? f.index + 1 : max), 1)
-  const t = zoomTransform(zoom, focusIndex, vp, extent)
-  const height = canvasHeight(n)
+  const extent = { rows: tree.rowCount, lanes: tree.lanes }
+  const focusLane = tree.laneOf.get(focus.branchId) ?? 0
+  const t = zoomTransform(zoom, { index: focus.index, lane: focusLane }, vp, extent)
+  const width = canvasWidth(tree.lanes)
+  const height = canvasHeight(path.forks.length)
+
+  const appraisalFor = (row: RowView): ReturnType<typeof appraiseFork> | null => {
+    if (row.record) return row.record.appraisal
+    const run = runs.get(row.branchId)
+    if (!run) return null
+    const p = peek(run)
+    return p ? p.appraisal : null
+  }
+
+  const isFocused = (row: RowView): boolean =>
+    row.branchId === focus.branchId && row.index === focus.index
 
   return (
     <div className="canvas-viewport">
       <div
         className="canvas"
         style={{
-          width: CANVAS_W,
+          width,
           height,
           transform: `translate(${t.x}px, ${t.y}px) scale(${t.scale})`,
         }}
       >
-        <svg className="wires" width={CANVAS_W} height={height} aria-hidden="true">
-          {facts.map((f) => {
-            if (!f.visible) return null
+        <svg className="wires" width={width} height={height} aria-hidden="true">
+          {tree.rows.map((row) => {
+            const tone = row.isActive ? 'w-active' : 'w-parallel'
+            const focusedHere = isFocused(row)
             return (
-              <g key={`w${f.index}`}>
-                <path className="wire stem" d={stemPath(f.index)} />
+              <g key={`w:${row.key}`}>
+                {row.drawStem && <path className="wire stem" d={stemPath(row.lane, row.index)} />}
                 {([0, 1] as const).map((i) => {
-                  const a = f.arms[i]
-                  const rec = activeRun.records[f.index]
-                  // The ghost arm is drawn only while its fork is being inspected.
-                  const ghosted =
-                    a.state === 'unlived' &&
-                    rec !== undefined &&
-                    f.index === focusIndex &&
-                    zoom !== 'life'
-                  if (a.state === 'unlived' && !ghosted) return null
-                  const feas = rec?.appraisal.options[i].feasibility
+                  const taken = row.record?.resolvedIndex === i
+                  const ghost =
+                    row.record !== null && !taken && focusedHere && zoom !== 'life'
+                  if (row.record !== null && !taken && !ghost) return null
+                  if (row.isOpen) {
+                    return (
+                      <path
+                        key={i}
+                        className="wire w-open"
+                        d={armPath(row.fromLane, row.lane, row.index, i)}
+                      />
+                    )
+                  }
+                  const feas = row.record?.appraisal.options[i].feasibility
                   const cls = [
                     'wire',
-                    ghosted ? 'w-ghost' : `w-${a.state}`,
-                    feas === 'impossible' ? 'w-impossible' : '',
+                    ghost ? 'w-ghost' : tone,
+                    feas === 'impossible' && ghost ? 'w-impossible' : '',
                   ]
                     .filter(Boolean)
                     .join(' ')
-                  return <path key={i} className={cls} d={armPath(f.index, i)} />
+                  return (
+                    <path key={i} className={cls} d={armPath(row.fromLane, row.lane, row.index, i)} />
+                  )
                 })}
               </g>
             )
           })}
         </svg>
 
-        {facts.map((f) => {
-          const fork = path.forks[f.index]
-          if (!fork || !f.visible) return null
-          const record = activeRun.records[f.index] ?? null
-          const appraisal = record
-            ? record.appraisal
-            : f.isCurrent
-              ? appraiseFork(fork, activeRun.traits, activeRun.factors, activeRun.resources)
-              : null
+        {tree.rows.map((row) => {
+          const fork = path.forks[row.index]
+          if (!fork) return null
           return (
             <ForkNode
-              key={fork.id}
+              key={row.key}
               fork={fork}
-              facts={f}
-              appraisal={appraisal}
-              record={record}
+              row={row}
+              appraisal={appraisalFor(row)}
               zoom={zoom}
-              focused={f.index === focusIndex}
-              stepBack={stepBackFor(f.index)}
+              showStem={row.drawStem && row.lane === focusLane}
+              focused={isFocused(row)}
+              stepBack={stepBackFor(row)}
               onChoose={onChoose}
-              onTryOther={(arm) => onTryOther(f.index, arm)}
-              onFocus={() => onFocus(f.index)}
+              onTryOther={(arm) => onTryOther(row.index, arm)}
+              onFocus={() => onFocus({ branchId: row.branchId, index: row.index })}
             />
           )
         })}
@@ -140,26 +166,25 @@ export const LifeCanvas = ({
         * The ladder, kept legible.
         *
         * At life distance the rungs -- childhood at the top, seconds at the
-        * bottom -- are the most useful thing on screen, and they are the one
-        * part of the canvas that must not shrink with it. So they are drawn
-        * outside the transform and positioned from it.
+        * bottom -- are the most useful thing on screen, and the one part of the
+        * canvas that must not shrink with it. Drawn outside the transform,
+        * positioned from it, once per row rather than once per lane.
         */}
       {zoom === 'life' && (
         <div className="rungs">
-          {facts.map((f) => {
-            const fork = path.forks[f.index]
-            if (!fork || !f.visible) return null
+          {Array.from({ length: tree.rowCount }, (_, i) => {
+            const fork = path.forks[i]
+            if (!fork) return null
+            const isNow = tree.rows.some((r) => r.index === i && r.isOpen)
             return (
-              <button
-                key={`r${f.index}`}
-                className={`rung${f.isCurrent ? ' current' : ''}`}
-                style={{ top: t.y + armMidY(f.index) * t.scale }}
+              <div
+                key={`r${i}`}
+                className={`rung${isNow ? ' current' : ''}`}
+                style={{ top: t.y + (forkTop(i) + ARM_MID_LOCAL) * t.scale }}
                 title={SCALE_LABELS[fork.scale]}
-                onClick={() => onFocus(f.index)}
               >
                 {SCALE_SHORT[fork.scale]}
-                {f.isCurrent && <b>now</b>}
-              </button>
+              </div>
             )
           })}
         </div>
