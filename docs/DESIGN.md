@@ -111,42 +111,42 @@ canvas holding her whole life, and those three are three distances from it —
 *moment*, *around*, *life* — animated and anchored on the fork in question, so
 the player can always tell where they went.
 
-**A life is a column; a life you stepped out of is the column beside it.**
-Branches keep their own lanes and never rejoin, but the *rows* are shared: row N
-is fork N in every lane. So the same fork, reached by two different pasts, sits
-side by side at the same height — same question, different person arriving at
-it, with a different tendency and a different price.
+**The tree of answers.** The root is the first fork. Every fork spawns two, so
+row N holds instances of fork N — the same question, reached by a different
+sequence of previous answers, and therefore put to a different person with a
+different tendency and a different price.
 
-That repetition is the point, not a redundancy to design away. The forks do not
-change; who reaches them does. Reading that horizontally is the argument in one
-picture, and it is the one thing a single merged timeline cannot show.
+That repetition is the argument, not a redundancy to design away. The forks do
+not change; who arrives at them does. Reading a row across is the thesis in one
+picture, and no merged timeline can show it.
 
-**The receipt lives on the arms.** The engine produces one signed list of
+A node is identified by the answers that got to it: `011` is fork 3, reached by
+pressing 0, then 1, then 1. **The tree branches on what the player pressed**, not
+on what happened — which keeps it exactly binary, and makes the cases where two
+different presses land in the same state visible as two branches arriving at one
+result.
+
+**What is drawn.** The full tree is 2^16 leaves and nobody will ever see most of
+it. Drawn are the nodes somebody has lived, plus the unpressed sibling of each —
+so the shape widens as it is explored, and every unexplored answer is on screen
+as something to tap. The frontier is one row deep by construction
+(`buildTree`); showing more would be 2^N again.
+
+| | |
+|---|---|
+| **gold** | the life she is in |
+| **blue** | a life stepped out of, still running down its own branch |
+| **dashed** | an answer nobody has pressed — tap to go back and press it |
+
+**The receipt lives on the answers.** The engine produces one signed list of
 contributions; positive pulls toward one option, negative toward the other. Put
-each cause on the arm it pulls toward and a table becomes a picture of a decision
-being made — same numbers, same sum.
-
-The four fork states follow:
-
-| | lived | not lived |
-|---|---|---|
-| **active** | gold — her past | not drawn |
-| **parallel** | blue — a life stepped out of, in its own lane | not drawn |
-
-The road not taken is *literally not there* until you go back and take it. That
-is not a rendering shortcut; it is the claim.
-
-**Except on inspection.** A fork she has already passed would otherwise be a
-plain curve, and a player has no way to learn that going back is a thing the
-game does. So focusing a lived fork — the deliberate act of asking what else was
-there — reveals the other arm, dashed, carrying the one control that acts on it:
-*go back and try this · N*. One tap, because stepping back and then pressing was
-two separate discoveries and players only ever made the first by accident.
+each cause on the answer it pulls toward and a table becomes a picture of a
+decision being made — same numbers, same sum.
 
 **A branch can come out identical**, when the press failed or was never in
-reach: a second lane running the same life. That is the purest statement the
-game makes and it is unreadable unless said out loud, so the branch row says
-*you went back — she did it anyway*.
+reach: a second branch running the same life. That is the purest statement the
+game makes and is unreadable unless said out loud, so that answer reads
+*you pressed this — she did the other thing*.
 
 **What is never drawn on an undecided fork:** cost, feasibility, pull shares,
 which arm is the tendency. All of it appears the instant the press lands and

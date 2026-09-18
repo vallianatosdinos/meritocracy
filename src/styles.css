@@ -28,17 +28,12 @@ html, body {
 body { overscroll-behavior: none; }
 #root { min-height: 100dvh; display: flex; justify-content: center; }
 
-/* ================================================================== *
- * Shared chrome
- * ================================================================== */
+/* ================= shared chrome ================= */
 
 .shell {
-  width: 100%;
-  max-width: 46rem;
+  width: 100%; max-width: 46rem;
   padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(1.5rem, env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  display: flex; flex-direction: column; gap: 1.25rem;
 }
 .shell.scroller { overflow-y: auto; max-height: 100dvh; }
 
@@ -76,9 +71,7 @@ button.act:disabled { opacity: 0.35; cursor: not-allowed; }
 button.act.primary { color: var(--warm); border-color: rgba(200, 162, 95, 0.45); }
 button.act.big { font-size: 0.8rem; padding: 0.8rem 1.2rem; }
 
-/* ================================================================== *
- * Roll
- * ================================================================== */
+/* ================= roll ================= */
 
 .roll-item { border-top: 1px solid var(--rule); padding: 1rem 0; }
 .roll-item:first-child { border-top: none; }
@@ -89,7 +82,6 @@ button.act.big { font-size: 0.8rem; padding: 0.8rem 1.2rem; }
 .roll-prompt { color: var(--ink-dim); font-size: 0.92rem; line-height: 1.5; margin: 0.35rem 0 0.6rem; }
 .roll-result { font-size: 1.1rem; margin: 0; }
 .roll-quip { color: var(--warm); font-size: 0.94rem; line-height: 1.5; margin: 0.6rem 0 0; }
-
 .roll-traits { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.7rem; }
 .trait-chip {
   display: inline-flex; align-items: baseline; gap: 0.4rem;
@@ -103,23 +95,18 @@ button.act.big { font-size: 0.8rem; padding: 0.8rem 1.2rem; }
 .trait-chip.bad { border-color: rgba(180, 86, 75, 0.4); }
 .trait-chip.bad b { color: var(--alarm); }
 
-/* ================================================================== *
- * Stage: HUD + canvas + sheet
- * ================================================================== */
+/* ================= stage ================= */
 
-.stage {
-  position: relative; width: 100%; height: 100dvh; overflow: hidden;
-}
+.stage { position: relative; width: 100%; height: 100dvh; overflow: hidden; }
 
 .hud {
-  position: absolute; inset: 0 0 auto 0; z-index: 3;
+  position: absolute; inset: 0 0 auto 0; z-index: 4;
   display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
   padding: max(0.7rem, env(safe-area-inset-top)) 0.9rem 0.7rem;
   background: linear-gradient(var(--bg) 55%, transparent);
   pointer-events: none;
 }
 .hud > * { pointer-events: auto; }
-
 .meters { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; max-width: 17rem; }
 .meter { display: flex; align-items: center; gap: 0.5rem; }
 .meter-label {
@@ -141,7 +128,6 @@ button.act.big { font-size: 0.8rem; padding: 0.8rem 1.2rem; }
   font-family: var(--mono); font-size: 0.6rem; color: var(--ink-faint);
   min-width: 3rem; text-align: right;
 }
-
 .zoomer { display: flex; border: 1px solid var(--rule); background: var(--bg-raised); }
 .zoom-btn {
   appearance: none; background: none; border: none; cursor: pointer;
@@ -157,90 +143,127 @@ button.act.big { font-size: 0.8rem; padding: 0.8rem 1.2rem; }
   will-change: transform;
 }
 
-/* ---------------- wires: the diamond chain ---------------- */
+/* ================= the tree ================= */
 
 .wires { position: absolute; inset: 0; overflow: visible; }
 .wire { fill: none; stroke-linecap: round; }
-.wire.stem { stroke: var(--rule); stroke-width: 2.5; }
+.wire.stem { stroke-width: 2; }
+.wire.stem.w-unexplored { opacity: 0.45; }
 .wire.w-active { stroke: var(--warm); stroke-width: 3.5; }
-.wire.w-parallel { stroke: var(--cold); stroke-width: 2; opacity: 0.55; }
-.wire.w-open { stroke: var(--ink-faint); stroke-width: 2; stroke-dasharray: 7 9; opacity: 0.8; }
-.wire.w-impossible { stroke: var(--alarm); stroke-dasharray: 3 14; opacity: 0.5; }
+.wire.w-parallel { stroke: var(--cold); stroke-width: 2; opacity: 0.6; }
+.wire.w-open { stroke: var(--ink-faint); stroke-width: 2.5; stroke-dasharray: 8 10; opacity: 0.9; }
+.wire.w-unexplored { stroke: var(--ink-faint); stroke-width: 2.5; stroke-dasharray: 6 8; opacity: 0.6; }
+.wire.w-impossible { stroke: rgba(180, 86, 75, 0.4); stroke-dasharray: 2 14; }
 
-/* ---------------- fork cards ---------------- */
+.q-node { position: absolute; z-index: 1; }
+.q-node:has(.q-card.focused) { z-index: 3; }
 
-.fork-node { position: absolute; left: 0; right: 0; }
-
-.stem-card {
-  position: absolute; top: 10px; transform: translateX(-50%);
+.q-card {
+  position: absolute; left: 0; top: 8px; transform: translateX(-50%);
   display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;
   padding: 0.25rem 0.6rem; background: var(--bg); border: 1px solid var(--rule);
   cursor: pointer;
+  /* Neighbouring questions sit one slot apart, so an untruncated timestamp on
+     each would collide with the next. The one being read gets the full width. */
+  max-width: 190px;
 }
-.stem-card.current { border-color: rgba(200, 162, 95, 0.5); }
-.stem-card.parallel { opacity: 0.7; border-color: rgba(95, 127, 154, 0.35); }
-.stem-scale {
-  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; color: var(--ink-faint);
+.q-card.current, .q-card.focused { max-width: 360px; }
+.q-card .q-when { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.q-card.parallel { opacity: 0.72; border-color: rgba(95, 127, 154, 0.35); }
+.q-card.stub { opacity: 0.5; border-style: dashed; }
+.q-card.current { border-color: rgba(200, 162, 95, 0.6); background: #17140e; }
+.q-card.focused { border-color: var(--ink-faint); }
+.q-scale { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; color: var(--ink-faint); }
+.q-when { font-size: 0.82rem; color: var(--ink-dim); }
+.q-now {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--warm);
 }
-.stem-when { font-size: 0.82rem; color: var(--ink-dim); }
-
-.stem-prose {
-  position: absolute; top: 46px; transform: translateX(-50%);
-  width: 380px; margin: 0; text-align: center;
+.q-prose {
+  position: absolute; left: 0; top: 44px; transform: translateX(-50%);
+  width: 340px; margin: 0; text-align: center;
   font-size: 15px; line-height: 1.5; color: var(--ink);
 }
 
-.arm-card {
-  position: absolute; width: 176px; transform: translate(-50%, -50%);
+.a-card {
+  position: absolute; width: 156px; transform: translate(-50%, -50%);
   padding: 0.5rem 0.6rem; background: var(--bg-raised); border: 1px solid var(--rule);
-  cursor: pointer; transition: border-color 160ms, background 160ms, transform 160ms;
+  cursor: pointer; z-index: 2;
+  transition: border-color 160ms, background 160ms, transform 160ms;
 }
-.arm-card.is-open { border-color: #33333f; }
-.arm-card.is-open:active { transform: translate(-50%, -50%) scale(0.985); }
-.arm-card.taken { border-color: rgba(200, 162, 95, 0.55); background: #1a1812; }
-.arm-card.is-parallel { border-color: rgba(95, 127, 154, 0.4); background: #12161a; opacity: 0.9; }
-.arm-card.pressed { border-style: dashed; border-color: rgba(180, 86, 75, 0.55); }
-
-.arm-label { font-size: 14px; line-height: 1.32; color: var(--ink); }
-
-.arm-pull { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.4rem; }
-.arm-bar {
-  position: relative; flex: 1; height: 3px; background: var(--bg-sunken); border: 1px solid var(--rule);
+.a-card.detailed { transform: translate(-50%, 0); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); z-index: 3; }
+.a-card.open { border-color: #33333f; }
+.a-card.active { border-color: rgba(200, 162, 95, 0.55); background: #1a1812; }
+.a-card.parallel { border-color: rgba(95, 127, 154, 0.4); background: #12161a; opacity: 0.88; }
+.a-card.parallel .a-bar > span { background: var(--cold); }
+.a-card.unexplored {
+  border-style: dashed; border-color: var(--rule);
+  background: rgba(22, 22, 27, 0.75); opacity: 0.8;
 }
-.arm-bar > span { position: absolute; inset: 0 auto 0 0; background: var(--ink-faint); }
-.arm-card.taken .arm-bar > span { background: var(--warm); }
-.arm-total { font-family: var(--mono); font-size: 0.6rem; color: var(--ink-faint); }
+.a-card.unexplored .a-label { color: var(--ink-dim); }
+.a-card.confab { border-color: rgba(180, 86, 75, 0.5); }
 
-.arm-cost { margin-top: 0.4rem; }
+/* The illusion, in CSS. Never labelled, never explained. */
+.a-card.open.lean {
+  transform: translate(-50%, -50%) scale(1.015);
+  border-color: #3a3a46; background: #191920;
+}
+
+.a-label { font-size: 13.5px; line-height: 1.32; color: var(--ink); }
+.a-pull { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.4rem; }
+.a-bar { position: relative; flex: 1; height: 3px; background: var(--bg-sunken); border: 1px solid var(--rule); }
+.a-bar > span { position: absolute; inset: 0 auto 0 0; background: var(--warm); }
+.a-total { font-family: var(--mono); font-size: 0.58rem; color: var(--ink-faint); }
+.a-cost { margin-top: 0.4rem; }
 .chip {
-  display: inline-block; font-family: var(--mono); font-size: 0.56rem;
+  display: inline-block; font-family: var(--mono); font-size: 0.54rem;
   letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.4rem;
   border: 1px solid var(--rule); color: var(--ink-faint);
 }
 .chip.cost { color: var(--warm); border-color: rgba(200, 162, 95, 0.45); }
 .chip.free { color: var(--ink-faint); }
 .chip.oor, .chip.impossible { color: var(--alarm); border-color: rgba(180, 86, 75, 0.45); }
-
-.arm-pressed {
-  margin-top: 0.35rem; font-family: var(--mono); font-size: 0.55rem;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--alarm);
+.a-confab {
+  margin-top: 0.35rem; font-family: var(--mono); font-size: 0.53rem;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--alarm); line-height: 1.45;
 }
-
-.arm-items { margin-top: 0.5rem; border-top: 1px solid var(--rule); padding-top: 0.4rem; }
-.arm-item {
-  display: grid; grid-template-columns: 2.4rem 1fr auto; gap: 0.3rem;
-  align-items: start; padding: 0.16rem 0;
+.a-explore {
+  margin-top: 0.4rem; font-family: var(--mono); font-size: 0.54rem;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--cold);
 }
-.arm-item .sc { font-family: var(--mono); font-size: 0.5rem; letter-spacing: 0.06em; color: var(--ink-faint); padding-top: 2px; }
-.arm-item .lb { font-size: 11px; line-height: 1.32; color: var(--ink-dim); }
-.arm-item .wt { font-family: var(--mono); font-size: 0.55rem; color: var(--ink-faint); }
-.arm-item.locked .lb { color: var(--ink-faint); }
+.a-explore.cold { color: var(--alarm); }
+.a-items { margin-top: 0.5rem; border-top: 1px solid var(--rule); padding-top: 0.4rem; }
+.a-item {
+  display: grid; grid-template-columns: 2.3rem 1fr auto; gap: 0.3rem;
+  align-items: start; padding: 0.15rem 0;
+}
+.a-item .sc { font-family: var(--mono); font-size: 0.48rem; letter-spacing: 0.06em; color: var(--ink-faint); padding-top: 2px; }
+.a-item .lb { font-size: 10.5px; line-height: 1.32; color: var(--ink-dim); }
+.a-item .lb i { font-style: normal; color: var(--ink-faint); font-family: var(--mono); font-size: 0.48rem; }
+.a-item .wt { font-family: var(--mono); font-size: 0.52rem; color: var(--ink-faint); }
+.a-item.locked .lb { color: var(--ink-faint); }
 
-/* ---------------- bottom sheet ---------------- */
+.a-dot {
+  position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+  border-radius: 50%; cursor: pointer; background: var(--rule); z-index: 2;
+}
+.a-dot.active { background: var(--warm); }
+.a-dot.parallel { background: var(--cold); opacity: 0.75; }
+.a-dot.unexplored { background: none; border: 3px dashed var(--ink-faint); opacity: 0.75; }
+
+.rungs { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.rung {
+  position: absolute; left: 0.6rem; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.12em;
+  color: var(--ink-faint); white-space: nowrap;
+}
+.rung.current { color: var(--warm); }
+
+/* ================= bottom sheet ================= */
 
 .sheet {
-  position: absolute; inset: auto 0 0 0; z-index: 3;
-  max-height: 52dvh; overflow-y: auto;
+  position: absolute; inset: auto 0 0 0; z-index: 4;
+  max-height: 50dvh; overflow-y: auto;
   padding: 1rem 1rem max(1rem, env(safe-area-inset-bottom));
   background: linear-gradient(transparent, var(--bg) 18%);
   display: flex; flex-direction: column; gap: 0.8rem;
@@ -248,93 +271,18 @@ button.act.big { font-size: 0.8rem; padding: 0.8rem 1.2rem; }
 .sheet:empty { display: none; }
 .sheet-block { display: flex; flex-direction: column; gap: 0.6rem; }
 .sheet p { margin: 0; }
-
 .narration { font-size: 1rem; line-height: 1.55; }
-.hint { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.08em; color: var(--ink-faint); }
+.hint { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.08em; color: var(--ink-faint); line-height: 1.6; }
 .coda { font-size: 1.05rem; line-height: 1.6; white-space: pre-line; }
 .aside {
   border-left: 2px solid var(--warm); padding: 0.1rem 0 0.1rem 0.8rem;
   color: var(--warm); font-size: 0.92rem; line-height: 1.5;
 }
-.confab {
-  border: 1px solid var(--alarm); background: rgba(180, 86, 75, 0.07); padding: 0.8rem 0.9rem;
-}
+.confab { border: 1px solid var(--alarm); background: rgba(180, 86, 75, 0.07); padding: 0.8rem 0.9rem; }
 .confab h4 { color: var(--alarm); }
 .confab p { font-size: 0.96rem; line-height: 1.55; font-style: italic; }
 
 @media (min-width: 40rem) {
   h1 { font-size: 2.6rem; }
   .sheet { padding-left: 2rem; padding-right: 2rem; }
-}
-
-/* ---- life distance: shape only ---- */
-.arm-dot {
-  position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px;
-  border-radius: 50%; background: var(--rule); cursor: pointer;
-}
-.arm-dot.taken.active { background: var(--warm); }
-.arm-dot.taken.parallel { background: var(--cold); opacity: 0.75; }
-.arm-dot.open { background: none; border: 3px dashed var(--ink-faint); }
-
-.fork-node.current .stem-card { border-color: rgba(200, 162, 95, 0.6); background: #17140e; }
-.stem-now {
-  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--warm);
-}
-
-.rungs { position: absolute; inset: 0; pointer-events: none; }
-.rung {
-  position: absolute; left: 0.75rem; transform: translateY(-50%);
-  display: flex; align-items: baseline; gap: 0.35rem;
-  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em;
-  color: var(--ink-faint); white-space: nowrap;
-}
-.rung.current { color: var(--warm); }
-.rung b {
-  font-weight: 500; font-size: 0.52rem; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--warm);
-}
-
-/* A focused fork's detail panel sits above its neighbours rather than tangling
-   with them -- it is a foreground inspection, not part of the chain. */
-.fork-node { z-index: 1; }
-.fork-node.focused { z-index: 2; }
-.arm-card.detailed { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65); }
-.arm-item .lb i {
-  font-style: normal; color: var(--ink-faint); font-family: var(--mono); font-size: 0.5rem;
-  letter-spacing: 0.06em;
-}
-
-/* The illusion, in CSS. Never labelled, never explained. */
-.arm-card.is-open.lean {
-  transform: translate(-50%, -50%) scale(1.015);
-  border-color: #33333f;
-  background: #191920;
-}
-.arm-card.is-open.lean:active { transform: translate(-50%, -50%) scale(1.0); }
-
-/* The road not taken, revealed only while its fork is being inspected. */
-.wire.w-ghost {
-  stroke: var(--ink-faint); stroke-width: 2; stroke-dasharray: 6 10; opacity: 0.6;
-}
-.arm-card.ghost {
-  border-style: dashed; border-color: var(--ink-faint);
-  background: rgba(22, 22, 27, 0.9); opacity: 0.92;
-}
-.arm-card.ghost .arm-label { color: var(--ink-dim); }
-.arm-card.ghost .ghost-act {
-  margin-top: 0.45rem; font-family: var(--mono); font-size: 0.56rem;
-  letter-spacing: 0.08em; text-transform: uppercase; color: var(--cold);
-}
-.arm-card.ghost.unaffordable { cursor: not-allowed; opacity: 0.6; }
-.arm-card.ghost.unaffordable .ghost-act { color: var(--alarm); }
-
-/* A life the player walked away from keeps its lane and goes cold. */
-.arm-card.is-parallel { border-color: rgba(95, 127, 154, 0.4); background: #12161a; opacity: 0.88; }
-.arm-card.is-parallel .arm-bar > span { background: var(--cold); }
-.arm-card.is-active { border-color: var(--rule); background: var(--bg-raised); }
-
-.arm-same {
-  margin-top: 0.35rem; font-family: var(--mono); font-size: 0.55rem;
-  letter-spacing: 0.09em; text-transform: uppercase; color: var(--cold);
 }

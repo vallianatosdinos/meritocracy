@@ -3,16 +3,15 @@ import { GAME, getPath } from '../content'
 import { diffRuns, rewindCost, simulate, type Divergence } from '../engine'
 import {
   activeBranch,
-  buildTree,
   forkOff,
   initialBranches,
   pushIntent,
   runAll,
   type BranchState,
-  type RowView,
 } from './branches'
 import { Hud } from './Hud'
-import { LifeCanvas, type Focus } from './LifeCanvas'
+import { buildTree } from './tree'
+import { TreeCanvas } from './TreeCanvas'
 import { RollItem } from './Roll'
 import type { Zoom } from './layout'
 
@@ -29,19 +28,20 @@ export const App = (): JSX.Element => {
   const [revealed, setRevealed] = useState(0)
   const [hindsightSpent, setHindsightSpent] = useState(0)
   const [zoom, setZoom] = useState<Zoom>('moment')
-  /** Focus is a fork in a particular life, now that lives sit side by side. */
-  const [focus, setFocus] = useState<Focus>({ branchId: 'b0', index: 0 })
+  /** Focus is a node in the tree: a question reached by one exact history. */
+  const [focusKey, setFocusKey] = useState('')
   /** Set right after a press, so the outcome gets read before the next fork. */
   const [justResolved, setJustResolved] = useState<number | null>(null)
   const [divergences, setDivergences] = useState<Divergence[] | null>(null)
 
   const runs = useMemo(() => runAll(PATH, seed, branchState), [seed, branchState])
   const activeRun = runs.get(branchState.activeId)!
-  const tree = useMemo(() => buildTree(PATH, runs, branchState), [runs, branchState])
+  const tree = useMemo(() => buildTree(PATH, branchState), [branchState])
   const hindsightLeft = Math.max(0, activeRun.resources.hindsight - hindsightSpent)
-  const focusRun = runs.get(focus.branchId) ?? activeRun
-  const focusRecord = focusRun.records[focus.index] ?? null
-  const focusIsActiveLife = focus.branchId === branchState.activeId
+  const focusNode = tree.nodes.get(focusKey) ?? null
+  const focusDepth = focusNode?.depth ?? 0
+  /** The key of the question the active life is facing. */
+  const activeKey = activeBranch(branchState).intents.map((i) => i.optionIndex).join('')
 
   const reset = (): void => {
     setSeed(newSeed())
@@ -50,16 +50,16 @@ export const App = (): JSX.Element => {
     setRevealed(0)
     setHindsightSpent(0)
     setZoom('moment')
-    setFocus({ branchId: 'b0', index: 0 })
+    setFocusKey('')
     setJustResolved(null)
     setDivergences(null)
   }
 
   const choose = (arm: 0 | 1): void => {
     const at = activeRun.cursor
+    setFocusKey(activeKey)
     setBranchState((s) => pushIntent(s, { optionIndex: arm }))
     setJustResolved(at)
-    setFocus({ branchId: branchState.activeId, index: at })
     setZoom('moment')
     setDivergences(null)
   }
@@ -73,7 +73,12 @@ export const App = (): JSX.Element => {
       setPhase('epilogue')
       return
     }
-    setFocus({ branchId: branchState.activeId, index: next })
+    /*
+     * activeKey already includes the answer just given -- it is the key of the
+     * question the life now faces. Appending to it pointed at a node one row
+     * deeper than exists, which is usually a stub.
+     */
+    setFocusKey(activeKey)
     setZoom('moment')
   }
 
@@ -81,11 +86,8 @@ export const App = (): JSX.Element => {
     const cost = rewindCost(activeRun.cursor, index)
     if (cost > hindsightLeft) return
     setHindsightSpent((n) => n + cost)
-    setBranchState((s) => {
-      const next = forkOff(s, index)
-      setFocus({ branchId: next.activeId, index })
-      return next
-    })
+    setFocusKey(activeKey.slice(0, index))
+    setBranchState((s) => forkOff(s, index))
     setJustResolved(null)
     setDivergences(null)
     setZoom('moment')
@@ -99,30 +101,27 @@ export const App = (): JSX.Element => {
    * player only ever made the first one by accident. What they want is "try
    * that instead"; the engine still decides what actually happens.
    */
-  const tryOther = (index: number, arm: 0 | 1): void => {
-    const cost = rewindCost(activeRun.cursor, index)
+  /**
+   * Explore an unpressed answer: go back to that question and press it.
+   *
+   * One tap rather than two -- stepping back and then pressing were separate
+   * discoveries and players only ever made the first by accident.
+   */
+  const tryOther = (depth: number, arm: 0 | 1): void => {
+    const cost = rewindCost(activeRun.cursor, depth)
     if (cost > hindsightLeft) return
     setHindsightSpent((n) => n + cost)
-    setBranchState((s) => {
-      const next = pushIntent(forkOff(s, index), { optionIndex: arm })
-      setFocus({ branchId: next.activeId, index })
-      return next
-    })
-    setJustResolved(index)
+    setFocusKey(activeKey.slice(0, depth))
+    setBranchState((s) => pushIntent(forkOff(s, depth), { optionIndex: arm }))
+    setJustResolved(depth)
     setDivergences(null)
     setZoom('moment')
     setPhase('play')
   }
 
-  /**
-   * Stepping back happens within the life the player is in. A fork in a life
-   * they left can be read, but branching from it again is a different mechanic
-   * and is not built.
-   */
-  const stepBackFor = (row: RowView): { cost: number; affordable: boolean } | null => {
-    if (!row.isActive || row.branchId !== branchState.activeId) return null
-    if (row.index >= activeRun.cursor) return null
-    const cost = rewindCost(activeRun.cursor, row.index)
+  const stepBackFor = (depth: number): { cost: number; affordable: boolean } | null => {
+    if (depth >= activeRun.cursor) return null
+    const cost = rewindCost(activeRun.cursor, depth)
     return { cost, affordable: cost <= hindsightLeft }
   }
 
@@ -226,11 +225,13 @@ export const App = (): JSX.Element => {
 
   /* ------------------------- play and epilogue ------------------------- */
   const resolvedRecord = justResolved !== null ? activeRun.records[justResolved] ?? null : null
-  const focusedFork = PATH.forks[focus.index]
+  const focusedFork = PATH.forks[focusDepth]
   const canStepBack =
-    focusRecord !== null && focusIsActiveLife && focus.index < activeRun.cursor
-  const stepCost = canStepBack ? rewindCost(activeRun.cursor, focus.index) : 0
+    focusNode !== null && focusNode.kind === 'lived' && focusDepth < activeRun.cursor
+  const stepCost = canStepBack ? rewindCost(activeRun.cursor, focusDepth) : 0
+  const focusRecord = canStepBack ? (activeRun.records[focusDepth] ?? null) : null
   const sameAgain = sameAgainCount()
+  const unpressed = [...tree.nodes.values()].filter((n) => n.kind === 'stub').length
 
   return (
     <div className="stage">
@@ -241,20 +242,18 @@ export const App = (): JSX.Element => {
         onZoom={(z) => setZoom(z)}
       />
 
-      <LifeCanvas
+      <TreeCanvas
         path={PATH}
+        seed={seed}
         tree={tree}
-        runs={runs}
-        activeId={branchState.activeId}
         zoom={zoom}
-        focus={focus}
-        onChoose={choose}
-        onTryOther={tryOther}
+        focusKey={focusKey}
+        onPress={choose}
+        onExplore={tryOther}
         stepBackFor={stepBackFor}
-        onFocus={(f) => {
-          setFocus(f)
-          // Zooming in on every tap would make the map unusable for browsing.
-          // Life distance stays put; the closer framings inspect what you tapped.
+        onFocus={(key) => {
+          setFocusKey(key)
+          // Zooming in on every tap would make the tree unusable for browsing.
           if (zoom === 'life') setZoom('near')
         }}
       />
@@ -311,23 +310,25 @@ export const App = (): JSX.Element => {
           </div>
         )}
 
-        {!resolvedRecord && phase === 'play' && zoom === 'moment' && focusIsActiveLife &&
-          focus.index === activeRun.cursor && focusedFork && (
+        {!resolvedRecord && phase === 'play' && zoom === 'moment' && focusKey === activeKey &&
+          focusedFork && (
             <p className="hint">{focusedFork.when} &mdash; two ways out. Pick one.</p>
           )}
 
-        {canStepBack && focusedFork && (
+        {canStepBack && focusedFork && focusRecord && (
           <div className="sheet-block">
             <p className="hint">
               {focusedFork.when} &mdash; {focusRecord.fork.options[focusRecord.resolvedIndex].label}
-              {zoom !== 'life' && <> &middot; the other road is dashed, beside it</>}
             </p>
           </div>
         )}
 
         {!canStepBack && phase === 'play' && activeRun.cursor > 0 && justResolved === null &&
-          focusIsActiveLife && focus.index === activeRun.cursor && (
-            <p className="hint">Tap anything behind her to look at why, and to go back to it.</p>
+          focusKey === activeKey && (
+            <p className="hint">
+              {unpressed} answer{unpressed === 1 ? '' : 's'} on the tree nobody has pressed. Tap one
+              to go back and press it.
+            </p>
           )}
 
         <div className="row">
@@ -340,7 +341,7 @@ export const App = (): JSX.Element => {
             <button
               className="act primary"
               disabled={stepCost > hindsightLeft}
-              onClick={() => stepBackTo(focus.index)}
+              onClick={() => stepBackTo(focusDepth)}
             >
               {stepCost > hindsightLeft
                 ? `Needs ${stepCost} hindsight`
@@ -352,13 +353,11 @@ export const App = (): JSX.Element => {
               Press the same {sameAgain} again
             </button>
           )}
-          {!resolvedRecord &&
-            !(focusIsActiveLife && focus.index === activeRun.cursor) &&
-            phase === 'play' && (
+          {!resolvedRecord && focusKey !== activeKey && phase === 'play' && (
             <button
               className="act"
               onClick={() => {
-                setFocus({ branchId: branchState.activeId, index: activeRun.cursor })
+                setFocusKey(activeKey)
                 setZoom('moment')
               }}
             >

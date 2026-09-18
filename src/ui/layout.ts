@@ -1,60 +1,56 @@
 /**
- * Canvas geometry.
+ * Canvas geometry for the tree of answers.
  *
- * A life is a column. A life you stepped out of is the column beside it.
- *
- * Every branch keeps its own lane and they never rejoin, but the ROWS are
- * shared: row N is fork N in every lane. So the same fork, reached by two
- * different lives, sits side by side at the same height -- same question,
- * different person arriving at it, with a different tendency and a different
- * price. The repetition is the argument, and it only reads horizontally.
+ * Rows are forks: row N is fork N, everywhere across the canvas. Columns come
+ * from packing the drawn tree, so siblings never collide and a parent sits
+ * centred over its children. The shape widens as it is explored.
  */
-export const LANE_W = 300
-export const LANE_PAD = 50
 
-/** Vertical distance between one fork's stem and the next. */
-export const FORK_H = 420
+/** Horizontal pitch between adjacent leaves. Wide enough for an answer card. */
+export const SLOT_W = 212
+export const SIDE_PAD = 120
 
-/** How far an arm bows from its lane's spine. */
-export const SPREAD = 104
+/** Vertical distance between one fork and the next. */
+export const ROW_H = 400
 
-/** Space at the top of each cell for the stem card and the scene prose. */
-export const STEM_H = 190
+/** Space at the top of a row for the question card and its prose. */
+export const QUESTION_H = 180
 
-/** Where an arm card hangs, as an offset inside the fork's own cell. */
-export const ARM_MID_LOCAL = STEM_H + (FORK_H - STEM_H) * 0.5
+export const slotX = (slot: number): number => SIDE_PAD + slot * SLOT_W
+export const rowY = (depth: number): number => depth * ROW_H
 
-export const laneX = (lane: number): number => LANE_PAD + lane * LANE_W + LANE_W / 2
-export const canvasWidth = (lanes: number): number => LANE_PAD * 2 + Math.max(1, lanes) * LANE_W
+/** Where an answer's card hangs on its edge. */
+export const EDGE_MID = QUESTION_H + (ROW_H - QUESTION_H) * 0.5
 
-export const forkTop = (index: number): number => index * FORK_H
-export const forkSplit = (index: number): number => forkTop(index) + STEM_H
-export const forkBottom = (index: number): number => forkTop(index) + FORK_H
-export const canvasHeight = (rows: number): number => rows * FORK_H
+export const canvasWidth = (slots: number): number => SIDE_PAD * 2 + Math.max(1, slots) * SLOT_W
+export const canvasHeight = (rows: number): number => rows * ROW_H
 
-export const armX = (lane: number, arm: 0 | 1): number =>
-  laneX(lane) + (arm === 0 ? -SPREAD : SPREAD)
-
-/**
- * One arm, from wherever the line arrives to the next stem of `lane`, bowing
- * toward the option taken.
- *
- * `fromLane` differs from `lane` only on a branch's first row: that is the
- * moment the life leaves the one it came from, and the curve carrying it across
- * is the same curve that says which way she went.
- */
-export const armPath = (fromLane: number, lane: number, index: number, arm: 0 | 1): string => {
-  const x0 = laneX(fromLane)
-  const x1 = laneX(lane)
-  const bow = armX(lane, arm)
-  const y0 = forkSplit(index)
-  const y1 = forkBottom(index)
-  const c = (y1 - y0) * 0.38
-  return `M ${x0} ${y0} C ${bow} ${y0 + c}, ${bow} ${y1 - c}, ${x1} ${y1}`
+/** The answer, as a curve from the question down to where it lands. */
+export const edgePath = (fromSlot: number, toSlot: number, depth: number): string => {
+  const x0 = slotX(fromSlot)
+  const x1 = slotX(toSlot)
+  const y0 = rowY(depth) + QUESTION_H
+  const y1 = rowY(depth + 1)
+  const c = (y1 - y0) * 0.42
+  return `M ${x0} ${y0} C ${x0} ${y0 + c}, ${x1} ${y1 - c}, ${x1} ${y1}`
 }
 
-export const stemPath = (lane: number, index: number): string =>
-  `M ${laneX(lane)} ${forkTop(index)} L ${laneX(lane)} ${forkSplit(index)}`
+/** The short vertical above a question, where its incoming answer arrives. */
+export const stemPath = (slot: number, depth: number): string =>
+  `M ${slotX(slot)} ${rowY(depth)} L ${slotX(slot)} ${rowY(depth) + QUESTION_H}`
+
+/**
+ * Where an answer's card sits horizontally.
+ *
+ * Over the question it leads to, not the midpoint of its edge: a parent is
+ * centred between its children, so midpoints are only half a slot apart and the
+ * two answer cards overlap each other.
+ */
+export const answerX = (toSlot: number): number => slotX(toSlot)
+
+/** A short tick above a question, for when the scene prose is open below it. */
+export const stemTickPath = (slot: number, depth: number): string =>
+  `M ${slotX(slot)} ${rowY(depth)} L ${slotX(slot)} ${rowY(depth) + 8}`
 
 /* ------------------------------------------------------------------ *
  * Zoom
@@ -67,29 +63,28 @@ export interface Viewport {
   height: number
 }
 
-/** How many forks the middle framing always holds. */
-export const RECENT_WINDOW = 3
+/** How many rows the middle framing always holds. */
+export const RECENT_ROWS = 3
 
 export interface Extent {
-  /** Rows drawn, i.e. the furthest fork anybody has reached, plus one. */
   rows: number
-  lanes: number
+  slots: number
 }
 
 export const zoomScale = (zoom: Zoom, vp: Viewport, extent: Extent): number => {
-  const laneFit = (vp.width - 24) / LANE_W
-  if (zoom === 'moment') return Math.min(1, laneFit)
-  if (zoom === 'near') return Math.min(laneFit, (vp.height - 210) / (RECENT_WINDOW * FORK_H))
-  // 'life' must fit every lane as well as every row -- the comparison across
-  // lanes is the thing this framing exists for.
+  const oneSlot = (vp.width - 24) / SLOT_W
+  if (zoom === 'moment') return Math.min(1, oneSlot)
+  if (zoom === 'near') return Math.min(oneSlot, (vp.height - 210) / (RECENT_ROWS * ROW_H))
+  // 'life' must fit the whole tree: the comparison across a row is what the
+  // framing exists for, so width matters as much as depth.
   const fitH = (vp.height - 210) / Math.max(1, canvasHeight(extent.rows))
-  const fitW = (vp.width - 24) / canvasWidth(extent.lanes)
-  return Math.max(0.04, Math.min(fitW, fitH))
+  const fitW = (vp.width - 24) / canvasWidth(extent.slots)
+  return Math.max(0.02, Math.min(fitW, fitH))
 }
 
 export const zoomTransform = (
   zoom: Zoom,
-  focus: { index: number; lane: number },
+  focus: { depth: number; slot: number },
   vp: Viewport,
   extent: Extent,
 ): { scale: number; x: number; y: number } => {
@@ -98,11 +93,11 @@ export const zoomTransform = (
     zoom === 'life'
       ? canvasHeight(extent.rows) / 2
       : zoom === 'near'
-        ? forkTop(focus.index) + FORK_H * 0.5
-        : forkSplit(focus.index) + (FORK_H - STEM_H) * 0.46
-  const anchorX = zoom === 'life' ? canvasWidth(extent.lanes) / 2 : laneX(focus.lane)
+        ? rowY(focus.depth) + ROW_H * 0.5
+        : rowY(focus.depth) + QUESTION_H * 0.5
+  const anchorX = zoom === 'life' ? canvasWidth(extent.slots) / 2 : slotX(focus.slot)
   // 'recent' sits the focused fork low, so the screen fills with what came before.
-  const centreFactor = zoom === 'moment' ? 0.44 : zoom === 'near' ? 0.6 : 0.42
+  const centreFactor = zoom === 'moment' ? 0.4 : zoom === 'near' ? 0.5 : 0.46
   return {
     scale,
     x: vp.width / 2 - scale * anchorX,
