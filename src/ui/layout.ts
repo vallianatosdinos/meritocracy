@@ -82,11 +82,18 @@ export interface Viewport {
  * not drawn, so fitting all of them would frame mostly empty space and shrink
  * the life the player actually has.
  */
+/** How many forks the middle framing always holds. */
+export const RECENT_WINDOW = 3
+
 export const zoomScale = (zoom: Zoom, vp: Viewport, extent: number): number => {
-  if (zoom === 'moment') return Math.min(1, (vp.width - 16) / CANVAS_W)
-  if (zoom === 'near') return Math.min(1, (vp.width - 16) / CANVAS_W) * 0.5
-  const fitH = (vp.height - 210) / Math.max(1, canvasHeight(extent))
   const fitW = (vp.width - 32) / CANVAS_W
+  if (zoom === 'moment') return Math.min(1, (vp.width - 16) / CANVAS_W)
+  // 'recent' frames a fixed window -- three forks, whatever the life is doing.
+  // It therefore stays put as the life grows while 'life' keeps shrinking, which
+  // is the only thing that makes the middle framing worth having.
+  if (zoom === 'near')
+    return Math.min(fitW, (vp.height - 210) / (RECENT_WINDOW * FORK_H))
+  const fitH = (vp.height - 210) / Math.max(1, canvasHeight(extent))
   return Math.max(0.05, Math.min(fitW, fitH))
 }
 
@@ -106,8 +113,12 @@ export const zoomTransform = (
   const anchorY =
     zoom === 'life'
       ? canvasHeight(extent) / 2
-      : forkSplit(focusIndex) + (FORK_H - STEM_H) * 0.46
-  const centreFactor = zoom === 'moment' ? 0.44 : zoom === 'near' ? 0.46 : 0.42
+      : zoom === 'near'
+        ? // centre the focused fork inside the window, biased to show what came before
+          forkTop(focusIndex) + FORK_H * 0.5
+        : forkSplit(focusIndex) + (FORK_H - STEM_H) * 0.46
+  // 'recent' sits the focused fork low, so the screen fills with what came before it.
+  const centreFactor = zoom === 'moment' ? 0.44 : zoom === 'near' ? 0.6 : 0.42
   return {
     scale,
     x: vp.width / 2 - scale * CX,

@@ -8,10 +8,10 @@ interface Props {
   onZoom: (z: Zoom) => void
 }
 
-const ZOOMS: Array<[Zoom, string]> = [
-  ['moment', 'moment'],
-  ['near', 'around'],
-  ['life', 'life'],
+const ZOOMS: Array<[Zoom, string, string]> = [
+  ['moment', 'moment', 'This fork, and everything pushing on it'],
+  ['near', 'recent', 'The last few forks, so you can see how she got here'],
+  ['life', 'life', 'Everything she has lived, and every life you stepped out of'],
 ]
 
 /**
@@ -60,10 +60,11 @@ export const Hud = ({ resources, hindsightLeft, zoom, onZoom }: Props): JSX.Elem
       </div>
 
       <div className="zoomer" role="group" aria-label="Zoom">
-        {ZOOMS.map(([z, label]) => (
+        {ZOOMS.map(([z, label, hint]) => (
           <button
             key={z}
             className={`zoom-btn${zoom === z ? ' on' : ''}`}
+            title={hint}
             onClick={() => onZoom(z)}
           >
             {label}

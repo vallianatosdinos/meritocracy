@@ -89,6 +89,31 @@ export const App = (): JSX.Element => {
   }
 
   /**
+   * Go back to a fork and take the other road, in one action.
+   *
+   * Stepping back and then pressing was two separate discoveries, and the
+   * player only ever made the first one by accident. What they want is "try
+   * that instead"; the engine still decides what actually happens.
+   */
+  const tryOther = (index: number, arm: 0 | 1): void => {
+    const cost = rewindCost(activeRun.cursor, index)
+    if (cost > hindsightLeft) return
+    setHindsightSpent((n) => n + cost)
+    setBranchState((s) => pushIntent(forkOff(s, index), { optionIndex: arm }))
+    setFocusIndex(index)
+    setJustResolved(index)
+    setDivergences(null)
+    setZoom('moment')
+    setPhase('play')
+  }
+
+  const stepBackFor = (index: number): { cost: number; affordable: boolean } | null => {
+    if (index >= activeRun.cursor) return null
+    const cost = rewindCost(activeRun.cursor, index)
+    return { cost, affordable: cost <= hindsightLeft }
+  }
+
+  /**
    * The experiment: keep every later press identical, re-run, and see how
    * little of the life notices.
    */
@@ -189,8 +214,7 @@ export const App = (): JSX.Element => {
   /* ------------------------- play and epilogue ------------------------- */
   const resolvedRecord = justResolved !== null ? activeRun.records[justResolved] ?? null : null
   const focusedFork = PATH.forks[focusIndex]
-  const canStepBack =
-    focusRecord !== null && focusIndex < activeRun.cursor && justResolved === null
+  const canStepBack = focusRecord !== null && focusIndex < activeRun.cursor
   const stepCost = canStepBack ? rewindCost(activeRun.cursor, focusIndex) : 0
   const sameAgain = sameAgainCount()
 
@@ -210,9 +234,13 @@ export const App = (): JSX.Element => {
         zoom={zoom}
         focusIndex={focusIndex}
         onChoose={choose}
+        onTryOther={tryOther}
+        stepBackFor={stepBackFor}
         onFocus={(i) => {
           setFocusIndex(i)
-          setZoom('moment')
+          // Zooming in on every tap would make the map unusable for browsing.
+          // Life distance stays put; the closer framings inspect what you tapped.
+          if (zoom === 'life') setZoom('near')
         }}
       />
 
@@ -277,9 +305,15 @@ export const App = (): JSX.Element => {
           <div className="sheet-block">
             <p className="hint">
               {focusedFork.when} &mdash; {focusRecord.fork.options[focusRecord.resolvedIndex].label}
+              {zoom !== 'life' && <> &middot; the other road is dashed, beside it</>}
             </p>
           </div>
         )}
+
+        {!canStepBack && phase === 'play' && activeRun.cursor > 0 && justResolved === null &&
+          focusIndex === activeRun.cursor && (
+            <p className="hint">Tap anything behind her to look at why, and to go back to it.</p>
+          )}
 
         <div className="row">
           {resolvedRecord && (

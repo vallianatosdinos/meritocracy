@@ -36,7 +36,10 @@ interface Props {
   zoom: Zoom
   focusIndex: number
   onChoose: (arm: 0 | 1) => void
+  onTryOther: (index: number, arm: 0 | 1) => void
   onFocus: (index: number) => void
+  /** Cost of stepping back to a given fork, and whether it is affordable. */
+  stepBackFor: (index: number) => { cost: number; affordable: boolean } | null
 }
 
 /**
@@ -54,7 +57,9 @@ export const LifeCanvas = ({
   zoom,
   focusIndex,
   onChoose,
+  onTryOther,
   onFocus,
+  stepBackFor,
 }: Props): JSX.Element => {
   const vp = useViewport()
   const n = path.forks.length
@@ -81,12 +86,18 @@ export const LifeCanvas = ({
                 <path className="wire stem" d={stemPath(f.index)} />
                 {([0, 1] as const).map((i) => {
                   const a = f.arms[i]
-                  if (a.state === 'unlived') return null
                   const rec = activeRun.records[f.index]
+                  // The ghost arm is drawn only while its fork is being inspected.
+                  const ghosted =
+                    a.state === 'unlived' &&
+                    rec !== undefined &&
+                    f.index === focusIndex &&
+                    zoom !== 'life'
+                  if (a.state === 'unlived' && !ghosted) return null
                   const feas = rec?.appraisal.options[i].feasibility
                   const cls = [
                     'wire',
-                    `w-${a.state}`,
+                    ghosted ? 'w-ghost' : `w-${a.state}`,
                     feas === 'impossible' ? 'w-impossible' : '',
                   ]
                     .filter(Boolean)
@@ -116,7 +127,9 @@ export const LifeCanvas = ({
               record={record}
               zoom={zoom}
               focused={f.index === focusIndex}
+              stepBack={stepBackFor(f.index)}
               onChoose={onChoose}
+              onTryOther={(arm) => onTryOther(f.index, arm)}
               onFocus={() => onFocus(f.index)}
             />
           )

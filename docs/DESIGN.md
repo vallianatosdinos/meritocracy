@@ -120,6 +120,17 @@ contributions; positive pulls toward one option, negative toward the other. Put
 each cause on the arm it pulls toward and a table becomes a picture of a decision
 being made — same numbers, same sum.
 
+**The three distances each do one job**, or they should not exist:
+
+| | shows |
+|---|---|
+| **moment** | one fork, with every cause weighing on it |
+| **recent** | a fixed three-fork window — how she got here |
+| **life** | everything lived, shape and ladder rungs only |
+
+`recent` holds its window as the life grows while `life` keeps shrinking; that
+divergence is the only thing that earns the middle framing a place.
+
 **A parallel life is a different traversal of the same chain**, drawn in cold
 blue against the active path's warm gold. Which gives the four fork states:
 
@@ -130,6 +141,13 @@ blue against the active path's warm gold. Which gives the four fork states:
 
 The road not taken is *literally not there* until you go back and take it. That
 is not a rendering shortcut; it is the claim.
+
+**Except on inspection.** A fork she has already passed would otherwise be a
+plain curve, and a player has no way to learn that going back is a thing the
+game does. So focusing a lived fork — the deliberate act of asking what else was
+there — reveals the other arm, dashed, carrying the one control that acts on it:
+*go back and try this · N*. One tap, because stepping back and then pressing was
+two separate discoveries and players only ever made the first by accident.
 
 **What is never drawn on an undecided fork:** cost, feasibility, pull shares,
 which arm is the tendency. All of it appears the instant the press lands and

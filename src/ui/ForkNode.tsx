@@ -18,7 +18,10 @@ interface Props {
   record: ForkRecord | null
   zoom: Zoom
   focused: boolean
+  /** Hindsight this step-back would cost, and whether she can pay it. */
+  stepBack: { cost: number; affordable: boolean } | null
   onChoose: (arm: 0 | 1) => void
+  onTryOther: (arm: 0 | 1) => void
   onFocus: () => void
 }
 
@@ -75,7 +78,9 @@ export const ForkNode = ({
   record,
   zoom,
   focused,
+  stepBack,
   onChoose,
+  onTryOther,
   onFocus,
 }: Props): JSX.Element | null => {
   if (!facts.visible) return null
@@ -98,9 +103,37 @@ export const ForkNode = ({
 
   const arm = (index: 0 | 1): JSX.Element | null => {
     const a = facts.arms[index]
-    if (a.state === 'unlived') return null
-
     const opt = fork.options[index]
+
+    /*
+     * The road not taken, on request.
+     *
+     * At rest an arm nobody walked is not drawn -- that is the claim, and it
+     * holds. But then a fork she has already passed looks like a plain curve,
+     * and a player has no way to learn that going back is a thing the game does.
+     * So inspecting a lived fork -- the deliberate act of asking what else was
+     * there -- reveals it, dashed, with the one control that acts on it.
+     */
+    if (a.state === 'unlived') {
+      if (!lived || !focused || zoom === 'life' || !stepBack) return null
+      return (
+        <div
+          className={`arm-card ghost${stepBack.affordable ? '' : ' unaffordable'}`}
+          style={{ left: armX(index), top: ARM_MID_LOCAL }}
+          role="button"
+          tabIndex={0}
+          onClick={() => stepBack.affordable && onTryOther(index)}
+        >
+          <div className="arm-label">{opt.label}</div>
+          <div className="ghost-act">
+            {stepBack.affordable
+              ? `go back and try this · ${stepBack.cost}`
+              : `needs ${stepBack.cost} hindsight`}
+          </div>
+        </div>
+      )
+    }
+
     const taken = lived && record.resolvedIndex === index
     const appraised = appraisal?.options[index]
     const isTendency = appraised?.isTendency === true
