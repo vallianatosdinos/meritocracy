@@ -55,8 +55,9 @@ DOM, timing, or browser API in `src/engine`.**
 
 Two things worth knowing early about store distribution:
 
-- **Content rating.** Domestic violence, alcohol, and (if we go there) suicide
-  drive IARC ratings and can affect storefront placement. Worth deciding the
-  ceiling before writing more paths, not after.
+- **Content rating.** The ceiling is set — domestic violence, alcohol and death
+  in, suicide and self-harm out ([DESIGN.md](./DESIGN.md#content-boundaries-settled)) —
+  which keeps IARC ratings in territory every storefront will carry. Re-check if
+  a future path pushes at it.
 - **Apple requires a privacy manifest** even for a game that collects nothing.
   Trivial, but it has blocked releases.

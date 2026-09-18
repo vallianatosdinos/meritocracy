@@ -10,3 +10,4 @@ export const getPath = (id: string): LifePath => {
 }
 
 export { tenDigits }
+export { GAME } from './game'

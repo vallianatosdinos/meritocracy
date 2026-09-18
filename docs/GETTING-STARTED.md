@@ -109,7 +109,7 @@ learning new things per person and start hearing the same problems again.
 
 ### The method
 
-1. **Say almost nothing.** "This is a prototype, about ten minutes. Think out
+1. **Say almost nothing.** "This is a prototype, about fifteen minutes. Think out
    loud — say what you are noticing, what you expect to happen, what confuses
    you." Then stop talking.
 2. **Never explain. Never defend.** The hardest part. When they misread
@@ -157,7 +157,9 @@ the mechanics should have already done.
 My honest guesses, so you can check them rather than trust them:
 
 - the first two childhood scenes are slow before the player knows why they matter;
-- ten minutes is optimistic for a first run — budget fifteen;
+- the first run runs long while they stop to read — fifteen minutes is the
+  budget, and anything past twenty means the receipt is costing more than it
+  pays;
 - "energy" is unexplained until it stops you, which may read as arbitrary;
 - nobody steps out unprompted.
 
@@ -185,11 +187,11 @@ now:
 That is real money and several weeks of process overhead spent on a game that
 has not yet been played by five strangers. The web build is the same game.
 
-The one thing worth deciding *early*, because it is expensive to change later:
-**how dark the content goes.** Domestic violence, alcohol, and — if the suicide
-anchor act from your notes ever gets built — self-harm all drive age ratings and
-can affect whether storefronts feature you at all. Worth setting a ceiling before
-writing five more paths, not after.
+The content ceiling is already set, which is the thing that would otherwise be
+expensive to change later: domestic violence, alcohol, poverty and death are in;
+suicide and self-harm are out entirely. See
+[DESIGN.md](./DESIGN.md#content-boundaries-settled). That keeps the rating in
+territory every storefront will carry.
 
 ---
 

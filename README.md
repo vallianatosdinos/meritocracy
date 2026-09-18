@@ -11,9 +11,10 @@ Michael Sandel's *The Tyranny of Merit*.
 
 ## What exists right now
 
-A playable web prototype of one hand-crafted life. You roll for an origin you do
-not choose, live twenty-four years compressed into about ten minutes, and arrive
-at 23:41 on a Tuesday, where Nadia either calls her father or does not.
+A playable web prototype of **Ten Digits**, the first path. You roll for an
+origin you do not choose, live twenty-four years compressed into about fifteen
+minutes the first time and six to eight thereafter, and arrive at 23:41 on a
+Tuesday, where Nadia either calls her father or does not.
 
 At any point you can step out of her, read the full itemised account of why she
 is about to do what she is about to do — sorted from "four generations up" down

@@ -46,6 +46,11 @@ Not "she doesn't call" — *"she calls in 15–45% of lives, and in 40%+ of live
 is not available at any price."* The act is the thesis; the distribution is the
 spec.
 
+The anchor-act library is bounded: **suicide and self-harm are excluded**, for
+the reasons in [DESIGN.md](./DESIGN.md#content-boundaries-settled). This is a
+hard constraint on generation, not a style preference — a generator that is only
+told "write a morally weighty act" will reach for it.
+
 **2. Derive the factor budget.**
 To lean the anchor by ~X, you need contributions summing to ~X, spread across
 the ladder with required coverage: at least one factor at `genes`/`prenatal`, one
@@ -72,7 +77,7 @@ This matters more than any other decision here.
 
 | The model may | The model may **not** |
 |---|---|
-| propose anchor acts | set coefficients or weights |
+| propose anchor acts *within the library's bounds* | set coefficients or weights |
 | select factors from the library, with justification | invent resolution maths |
 | write prose into authored slots | decide whether a path is good |
 | write `confabulation` lines | ship anything unvalidated |

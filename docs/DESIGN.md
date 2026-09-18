@@ -1,7 +1,8 @@
 # Design
 
-Working title: **Ten Digits** (the path). The project needs a name; see
-[Open questions](#open-questions).
+The game is **Meritocracy**. "Ten Digits" is the first *path* inside it — one
+authored life, replayed with a different opening roll each time. Those are
+separate things and the distinction matters as soon as there is a second path.
 
 ## The thesis, stated once
 
@@ -172,6 +173,41 @@ rungs each get their own — they are separate occasions, not one long afternoon
 This is why last night's bedtime is still on the books at 23:41, and it is the
 mechanism behind "sometimes it's as simple as sleeping earlier".
 
+### Session length (settled)
+
+**~15 minutes for a player's first life, 6–8 minutes for every life after.**
+
+The first run is not just a run: it has to teach the receipt, the wall, and the
+rewind, none of which any other game has taught this player. Pricing that as ten
+minutes means teaching none of them properly. Later runs compress hard, because
+by then the player has the vocabulary and is there for the variation.
+
+Consequence for authoring: a path is sized for the *second* playthrough. The
+first one is longer because the player stops to read, not because there is more
+of it.
+
+## Content boundaries (settled)
+
+The game is about cruelty done *to* people by circumstance, so it will keep
+arriving at hard material. Where the line sits, decided now rather than after
+five more paths are written:
+
+**In.** Domestic violence, alcohol, poverty, humiliation, family estrangement,
+illness and death — at roughly the register already in `Ten Digits`: specific,
+unsentimental, never staged for shock.
+
+**Out. Suicide and self-harm are not available as anchor acts or as scene
+content.** It was on the original list and it is the one that does not survive
+the thesis: a game whose entire argument is *you could not have done otherwise*
+should not put that act in a player's hands, and the mechanics that make every
+other anchor land — the tendency nudge, the confabulation, the cheerful narrator
+— would all be actively harmful pointed at this one. It is also the single
+biggest storefront-rating risk, but that is the lesser reason.
+
+This is a boundary on the *anchor-act library*, not a squeamishness rule: a
+character may be in despair, and the game may sit in it. The act the player is
+asked to attempt or fail is what is constrained.
+
 ## Measured behaviour of the first path
 
 From `npm run validate`, 4,000 seeds per strategy:
@@ -190,7 +226,7 @@ because the player played badly — because of the roll.
 
 ## Open questions
 
-Things I decided provisionally and would rather you ruled on:
+Still genuinely open, and worth a decision before path #2:
 
 1. **Moment agency is currently exactly 0%.** Pressing "Dial" at 23:41, in a life
    otherwise lived on autopilot, never works. Thematically perfect; as *game
@@ -198,11 +234,11 @@ Things I decided provisionally and would rather you ruled on:
    sliver, so it is *nearly* never rather than provably never. Your call.
 2. **Roll dominance hits 100% at the extremes** — some openings always make the
    call, some never do. Correct by the thesis, possibly airless as play.
-3. **10 minutes is probably too short for run 1.** The first life has to teach
-   the receipt, the wall, and the rewind. I would budget ~15 minutes for run 1
-   and expect 6–8 once the player has the vocabulary.
-4. **Suicide as an anchor act** (on your list) needs real care and has concrete
-   App Store / Google Play review implications. It is not in this build, and if
-   we do it, it should be late, researched, and reviewed by someone qualified.
-5. **The title.** "Meritocracy" is the repo. Candidates: *Deserved*, *Tendency*,
-   *Ten Digits*, *The Part You Did Not Do*.
+
+### Settled
+
+- **Title: *Meritocracy*.** "Ten Digits" is path one.
+- **Session length: ~15 minutes for a first life, 6–8 after.** See
+  [above](#session-length-settled).
+- **No suicide or self-harm** as an anchor act or scene content. See
+  [Content boundaries](#content-boundaries-settled).
