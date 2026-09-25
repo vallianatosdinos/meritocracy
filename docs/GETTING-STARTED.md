@@ -135,7 +135,7 @@ When the game does something other than what they pressed, do they think "oh,
 she couldn't" — or "this game is broken"? If more than one or two people say
 broken, the beat needs stronger signposting before it needs rewriting.
 
-**2. Does anyone press "Step out and look at why"?** If nobody discovers it, the
+**2. Does anyone press the other answer?** If nobody discovers it, the
 entire second layer — the actual argument — does not exist. Count discoveries. If
 it is under three in five, the button needs to be louder or the game needs to
 force it once.

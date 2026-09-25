@@ -1,159 +1,79 @@
 import { useMemo, useState } from 'react'
 import { GAME, getPath } from '../content'
-import { diffRuns, rewindCost, simulate, type Divergence } from '../engine'
+import { SCALE_SHORT, simulate, type RunResult } from '../engine'
 import {
-  activeBranch,
-  forkOff,
-  initialBranches,
-  pushIntent,
-  runAll,
-  type BranchState,
-} from './branches'
+  activeHead,
+  continuation,
+  initialExploration,
+  press,
+  pressCost,
+  type Exploration,
+} from './explore'
+import { Graph, type ScrollRequest } from './Graph'
+import { buildGraph } from './graph'
 import { Hud } from './Hud'
-import { buildTree } from './tree'
-import { TreeCanvas } from './TreeCanvas'
 import { RollItem } from './Roll'
-import type { Zoom } from './layout'
 
 const PATH = getPath('ten-digits')
 
-type Phase = 'title' | 'rolling' | 'play' | 'epilogue'
+type Phase = 'title' | 'rolling' | 'play'
 
 const newSeed = (): number => Math.floor(Math.random() * 2 ** 30)
 
 export const App = (): JSX.Element => {
   const [seed, setSeed] = useState(newSeed)
-  const [branchState, setBranchState] = useState<BranchState>(initialBranches)
   const [phase, setPhase] = useState<Phase>('title')
   const [revealed, setRevealed] = useState(0)
-  const [hindsightSpent, setHindsightSpent] = useState(0)
-  const [zoom, setZoom] = useState<Zoom>('moment')
-  /** Focus is a node in the tree: a question reached by one exact history. */
+  const [exploration, setExploration] = useState<Exploration>(initialExploration)
   const [focusKey, setFocusKey] = useState('')
-  /** Set right after a press, so the outcome gets read before the next fork. */
-  const [justResolved, setJustResolved] = useState<number | null>(null)
-  const [divergences, setDivergences] = useState<Divergence[] | null>(null)
+  const [scrollReq, setScrollReq] = useState<ScrollRequest>({ key: '', mode: 'focus', nonce: 0 })
 
-  const runs = useMemo(() => runAll(PATH, seed, branchState), [seed, branchState])
-  const activeRun = runs.get(branchState.activeId)!
-  const tree = useMemo(() => buildTree(PATH, branchState), [branchState])
-  const hindsightLeft = Math.max(0, activeRun.resources.hindsight - hindsightSpent)
-  const focusNode = tree.nodes.get(focusKey) ?? null
-  const focusDepth = focusNode?.depth ?? 0
-  /** The key of the question the active life is facing. */
-  const activeKey = activeBranch(branchState).intents.map((i) => i.optionIndex).join('')
+  const cache = useMemo(() => new Map<string, RunResult>(), [seed])
+  const model = useMemo(
+    () => buildGraph(PATH, seed, exploration, cache),
+    [seed, exploration, cache],
+  )
+  const root = useMemo(() => simulate(PATH, seed, []), [seed])
+  const hindsightTotal = root.resources.hindsight
+  const hindsightLeft = Math.max(0, hindsightTotal - exploration.hindsightSpent)
+
+  const go = (key: string, mode: ScrollRequest['mode'] = 'focus'): void => {
+    setFocusKey(key)
+    setScrollReq((r) => ({ key, mode, nonce: r.nonce + 1 }))
+  }
 
   const reset = (): void => {
     setSeed(newSeed())
-    setBranchState(initialBranches())
     setPhase('title')
     setRevealed(0)
-    setHindsightSpent(0)
-    setZoom('moment')
+    setExploration(initialExploration())
     setFocusKey('')
-    setJustResolved(null)
-    setDivergences(null)
+    setScrollReq({ key: '', mode: 'focus', nonce: 0 })
   }
 
-  const choose = (arm: 0 | 1): void => {
-    const at = activeRun.cursor
-    setFocusKey(activeKey)
-    setBranchState((s) => pushIntent(s, { optionIndex: arm }))
-    setJustResolved(at)
-    setZoom('moment')
-    setDivergences(null)
+  const costOf = (nodeKey: string, arm: 0 | 1): { cost: number; affordable: boolean } => {
+    const cost = pressCost(exploration, nodeKey, arm)
+    return { cost, affordable: exploration.hindsightSpent + cost <= hindsightTotal }
   }
 
-  const goOn = (): void => {
-    const next = activeRun.cursor
-    setJustResolved(null)
-    setDivergences(null)
-    if (next >= PATH.forks.length) {
-      setZoom('life')
-      setPhase('epilogue')
+  /**
+   * One press, no confirmations.
+   *
+   * The result, the receipt and the other answer are all on the same card, so
+   * the player stays at this question and sees what happened. An answer already
+   * on the active path is a way down instead: pressing it again walks there.
+   */
+  const onPress = (nodeKey: string, arm: 0 | 1): void => {
+    const node = model.nodes.get(nodeKey)
+    const a = node?.arms?.[arm]
+    if (a?.played && a.onActivePath) {
+      go(a.childKey)
       return
     }
-    /*
-     * activeKey already includes the answer just given -- it is the key of the
-     * question the life now faces. Appending to it pointed at a node one row
-     * deeper than exists, which is usually a stub.
-     */
-    setFocusKey(activeKey)
-    setZoom('moment')
-  }
-
-  const stepBackTo = (index: number): void => {
-    const cost = rewindCost(activeRun.cursor, index)
-    if (cost > hindsightLeft) return
-    setHindsightSpent((n) => n + cost)
-    setFocusKey(activeKey.slice(0, index))
-    setBranchState((s) => forkOff(s, index))
-    setJustResolved(null)
-    setDivergences(null)
-    setZoom('moment')
-    setPhase('play')
-  }
-
-  /**
-   * Go back to a fork and take the other road, in one action.
-   *
-   * Stepping back and then pressing was two separate discoveries, and the
-   * player only ever made the first one by accident. What they want is "try
-   * that instead"; the engine still decides what actually happens.
-   */
-  /**
-   * Explore an unpressed answer: go back to that question and press it.
-   *
-   * One tap rather than two -- stepping back and then pressing were separate
-   * discoveries and players only ever made the first by accident.
-   */
-  const tryOther = (depth: number, arm: 0 | 1): void => {
-    const cost = rewindCost(activeRun.cursor, depth)
-    if (cost > hindsightLeft) return
-    setHindsightSpent((n) => n + cost)
-    setFocusKey(activeKey.slice(0, depth))
-    setBranchState((s) => pushIntent(forkOff(s, depth), { optionIndex: arm }))
-    setJustResolved(depth)
-    setDivergences(null)
-    setZoom('moment')
-    setPhase('play')
-  }
-
-  const stepBackFor = (depth: number): { cost: number; affordable: boolean } | null => {
-    if (depth >= activeRun.cursor) return null
-    const cost = rewindCost(activeRun.cursor, depth)
-    return { cost, affordable: cost <= hindsightLeft }
-  }
-
-  /**
-   * The experiment: keep every later press identical, re-run, and see how
-   * little of the life notices.
-   */
-  const pressTheSameAgain = (): void => {
-    const active = activeBranch(branchState)
-    const parent = branchState.branches.find((b) => b.id === active.parentId)
-    if (!parent) return
-    const tail = parent.intents.slice(active.intents.length)
-    if (tail.length === 0) return
-
-    const before = simulate(PATH, seed, parent.intents)
-    const after = simulate(PATH, seed, [...active.intents, ...tail])
-    setBranchState((s) => ({
-      ...s,
-      branches: s.branches.map((b) =>
-        b.id === s.activeId ? { ...b, intents: [...b.intents, ...tail] } : b,
-      ),
-    }))
-    setDivergences(diffRuns(before, after))
-    setJustResolved(null)
-    setZoom('life')
-  }
-
-  const sameAgainCount = (): number => {
-    const active = activeBranch(branchState)
-    const parent = branchState.branches.find((b) => b.id === active.parentId)
-    if (!parent) return 0
-    return Math.max(0, parent.intents.length - active.intents.length)
+    const result = press(exploration, nodeKey, arm, hindsightTotal)
+    if (result.kind === 'refused') return
+    setExploration(result.next)
+    go(nodeKey, 'reveal')
   }
 
   /* ------------------------------- title ------------------------------- */
@@ -185,7 +105,7 @@ export const App = (): JSX.Element => {
 
   /* -------------------------------- roll ------------------------------- */
   if (phase === 'rolling') {
-    const done = revealed >= activeRun.roll.length
+    const done = revealed >= root.roll.length
     return (
       <div className="shell scroller">
         <div className="topbar">
@@ -193,7 +113,7 @@ export const App = (): JSX.Element => {
           <span className="when">nothing below was chosen</span>
         </div>
         <div>
-          {activeRun.roll.slice(0, revealed).map((r) => (
+          {root.roll.slice(0, revealed).map((r) => (
             <RollItem key={r.categoryId} record={r} />
           ))}
         </div>
@@ -209,168 +129,87 @@ export const App = (): JSX.Element => {
           )}
           {revealed > 0 && !done && (
             <span className="tiny" style={{ alignSelf: 'center' }}>
-              {activeRun.roll.length - revealed} left
+              {root.roll.length - revealed} left
             </span>
           )}
         </div>
-        {done && (
-          <p className="tiny">
-            You cannot re-roll. Everything above is now load-bearing.
-          </p>
-        )}
+        {done && <p className="tiny">You cannot re-roll. Everything above is now load-bearing.</p>}
         <div className="spacer" />
       </div>
     )
   }
 
-  /* ------------------------- play and epilogue ------------------------- */
-  const resolvedRecord = justResolved !== null ? activeRun.records[justResolved] ?? null : null
-  const focusedFork = PATH.forks[focusDepth]
-  const canStepBack =
-    focusNode !== null && focusNode.kind === 'lived' && focusDepth < activeRun.cursor
-  const stepCost = canStepBack ? rewindCost(activeRun.cursor, focusDepth) : 0
-  const focusRecord = canStepBack ? (activeRun.records[focusDepth] ?? null) : null
-  const sameAgain = sameAgainCount()
-  const unpressed = [...tree.nodes.values()].filter((n) => n.kind === 'stub').length
+  /* -------------------------------- play ------------------------------- */
+  const focus = model.nodes.get(focusKey) ?? model.nodes.get('')
+  const parent = focus?.parentKey !== null && focus ? model.nodes.get(focus.parentKey) : undefined
+  const head = focus ? continuation(exploration, focus.key) : null
+  const nextKey = focus && head && head.length > focus.depth ? head.slice(0, focus.depth + 1) : null
+  const next = nextKey ? model.nodes.get(nextKey) : undefined
+  const now = activeHead(exploration)
+
+  const parentFork = parent ? PATH.forks[parent.depth] : undefined
+  const nextFork = next ? PATH.forks[next.depth] : undefined
+  const arrival = focus?.arrival
 
   return (
     <div className="stage">
       <Hud
-        resources={activeRun.resources}
+        energy={focus?.values.energy ?? 0}
+        energyCap={focus?.energyCap ?? 0}
         hindsightLeft={hindsightLeft}
-        zoom={zoom}
-        onZoom={(z) => setZoom(z)}
+        hindsightTotal={hindsightTotal}
+        onNow={focusKey !== now ? () => go(now) : null}
       />
 
-      <TreeCanvas
+      {/* The step before, always in reach. */}
+      <button
+        className={`peek up${parent ? '' : ' empty'}`}
+        disabled={!parent}
+        onClick={() => parent && go(parent.key)}
+      >
+        {parent && parentFork && arrival ? (
+          <>
+            <span className="pk-arrow">&uarr;</span>
+            <span className="pk-scale">{SCALE_SHORT[parentFork.scale]}</span>
+            {/* What she did comes first: on a narrow screen the timestamp is the
+                part that should be cut, not the answer. */}
+            <span className="pk-did">{parentFork.options[arrival.resolvedIndex].label}</span>
+            <span className="pk-when">{parentFork.when}</span>
+          </>
+        ) : (
+          <span className="pk-text">the first question she is asked</span>
+        )}
+      </button>
+
+      <Graph
         path={PATH}
-        seed={seed}
-        tree={tree}
-        zoom={zoom}
-        focusKey={focusKey}
-        onPress={choose}
-        onExplore={tryOther}
-        stepBackFor={stepBackFor}
-        onFocus={(key) => {
-          setFocusKey(key)
-          // Zooming in on every tap would make the tree unusable for browsing.
-          if (zoom === 'life') setZoom('near')
-        }}
+        model={model}
+        focusKey={focus?.key ?? ''}
+        scrollReq={scrollReq}
+        costOf={costOf}
+        onPress={onPress}
+        onFocus={(key) => go(key)}
+        onRestart={reset}
       />
 
-      <div className="sheet">
-        {divergences !== null && (
-          <div className="sheet-block">
-            <h4>You pressed the same buttons</h4>
-            {divergences.length === 0 ? (
-              <p>
-                Nothing downstream came out differently. The edit was real and the life absorbed it
-                without comment.
-              </p>
-            ) : (
-              <p>
-                {divergences.length} {divergences.length === 1 ? 'thing' : 'things'} came out
-                differently, and you changed none of your inputs after the edit. They are lit on the
-                canvas.
-              </p>
-            )}
-          </div>
+      {/* The step after, always in reach. */}
+      <button
+        className={`peek down${next ? '' : ' empty'}`}
+        disabled={!next}
+        onClick={() => next && go(next.key)}
+      >
+        {next ? (
+          <>
+            <span className="pk-arrow">&darr;</span>
+            <span className="pk-scale">{nextFork ? SCALE_SHORT[nextFork.scale] : 'END'}</span>
+            <span className="pk-text">{nextFork ? nextFork.when : 'after'}</span>
+          </>
+        ) : (
+          <span className="pk-text">
+            {focus?.isEnd ? 'the end of this life' : 'nothing below yet — answer above'}
+          </span>
         )}
-
-        {/*
-          * At life distance the player is navigating, not reading. Holding the
-          * narration here would cover the half of the canvas they zoomed out to
-          * see.
-          */}
-        {resolvedRecord && zoom !== 'life' && (
-          <div className="sheet-block">
-            <p className="narration">{resolvedRecord.narration}</p>
-            {resolvedRecord.confabulated && (
-              <div className="confab">
-                <h4>
-                  {resolvedRecord.outcome === 'blocked'
-                    ? 'She was never going to'
-                    : 'She explains it to herself'}
-                </h4>
-                <p>{resolvedRecord.confabulation}</p>
-              </div>
-            )}
-            {resolvedRecord.fork.aside && <p className="aside">{resolvedRecord.fork.aside}</p>}
-          </div>
-        )}
-
-        {phase === 'epilogue' && (
-          <div className="sheet-block">
-            <p className="narration">
-              {activeRun.anchor?.taken
-                ? PATH.epilogue.onAnchorTaken
-                : PATH.epilogue.onAnchorRefused}
-            </p>
-            <p className="coda">{PATH.epilogue.coda}</p>
-          </div>
-        )}
-
-        {!resolvedRecord && phase === 'play' && zoom === 'moment' && focusKey === activeKey &&
-          focusedFork && (
-            <p className="hint">{focusedFork.when} &mdash; two ways out. Pick one.</p>
-          )}
-
-        {canStepBack && focusedFork && focusRecord && (
-          <div className="sheet-block">
-            <p className="hint">
-              {focusedFork.when} &mdash; {focusRecord.fork.options[focusRecord.resolvedIndex].label}
-            </p>
-          </div>
-        )}
-
-        {!canStepBack && phase === 'play' && activeRun.cursor > 0 && justResolved === null &&
-          focusKey === activeKey && (
-            <p className="hint">
-              {unpressed} answer{unpressed === 1 ? '' : 's'} on the tree nobody has pressed. Tap one
-              to go back and press it.
-            </p>
-          )}
-
-        <div className="row">
-          {resolvedRecord && (
-            <button className="act primary" onClick={goOn}>
-              {activeRun.cursor >= PATH.forks.length ? 'After' : 'Go on'}
-            </button>
-          )}
-          {canStepBack && (
-            <button
-              className="act primary"
-              disabled={stepCost > hindsightLeft}
-              onClick={() => stepBackTo(focusDepth)}
-            >
-              {stepCost > hindsightLeft
-                ? `Needs ${stepCost} hindsight`
-                : `Go back to this · ${stepCost}`}
-            </button>
-          )}
-          {sameAgain > 0 && (
-            <button className="act" onClick={pressTheSameAgain}>
-              Press the same {sameAgain} again
-            </button>
-          )}
-          {!resolvedRecord && focusKey !== activeKey && phase === 'play' && (
-            <button
-              className="act"
-              onClick={() => {
-                setFocusKey(activeKey)
-                setZoom('moment')
-              }}
-            >
-              Back to her
-            </button>
-          )}
-          {phase === 'epilogue' && (
-            <button className="act primary" onClick={reset}>
-              Another life
-            </button>
-          )}
-        </div>
-      </div>
+      </button>
     </div>
   )
 }

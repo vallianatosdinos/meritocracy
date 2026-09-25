@@ -59,7 +59,7 @@ From your notebook, and each one is now a mechanical state, not a mood:
 ## Core loop
 
 ```
-roll  →  scene  →  press  →  resolve  →  [step out → read → rewind]  →  … →  anchor act  →  coda
+roll  →  question  →  press  →  result + receipt  →  [press the other answer]  →  …  →  anchor act  →  coda
 ```
 
 1. **The roll.** Ancestry, family, postcode, body. Revealed one at a time, with
@@ -78,13 +78,20 @@ Every fork computes a signed `leaning` from the character's history. The larger
 side is the **tendency**; the gap is the **resistance** of the other path.
 
 - Press the tendency → it happens. Free.
-- Press the other one → it costs `resistance × 1.45` energy and rolls against a
-  success chance derived from resistance.
-  - **affordable** — she can try. She might fail anyway.
+- Press the other one → it costs `resistance × 2.2` energy, and:
+  - **affordable** — she does it, and pays.
   - **out of reach** — she tries, empties out, and does the tendency. Trying costs
     the same as succeeding. This is not a bug.
   - **impossible** — nothing happens at all. There is no arrangement of *this*
     life in which that act occurs tonight.
+
+**There is no chance.** The same history and the same press always produce the
+same act. An earlier version rolled dice on affordable resists; that was removed
+because an outcome varying with no cause is exactly the uncaused wiggle room the
+game says does not exist. Removing it took lifetime agency from 50% to 89% — a
+game arguing *for* free will — so the price of resisting went from 1.45 to 2.2
+per unit of resistance, which puts it back at 48.9%. The only random thing left
+is the opening roll: who she is born as.
 
 None of this is shown before you choose. The only tell is that the tendency arm
 is rendered 1.5% larger and one step warmer. Players pick it and report having
@@ -104,12 +111,17 @@ This is the split-brain result as a feedback message, and it is the single most
 important beat in the game. You watched yourself press a button. She did not.
 She has an explanation, and she is not lying.
 
-## One space, three distances
+## One screen, one distance
 
-There is no scene screen, no receipt screen and no timeline screen. There is one
-canvas holding her whole life, and those three are three distances from it —
-*moment*, *around*, *life* — animated and anchored on the fork in question, so
-the player can always tell where they went.
+There is no scene screen, no receipt screen, no timeline screen and no zoom. There
+is one tree of every life the player has lived, read at the only distance where
+the words are legible, with the step before pinned to the top of the screen and
+the step after pinned to the bottom — one tap each.
+
+**No confirmations.** Press an answer and the fork stays on screen showing what
+actually happened and the full receipt. The other answer sits beside it: press
+that too, and see what happens there. Nothing asks the player to confirm or to
+move on.
 
 **The tree of answers.** The root is the first fork. Every fork spawns two, so
 row N holds instances of fork N — the same question, reached by a different
@@ -126,30 +138,46 @@ on what happened — which keeps it exactly binary, and makes the cases where tw
 different presses land in the same state visible as two branches arriving at one
 result.
 
+**The question is printed once per row.** Every fork in a row asks the same
+thing, so repeating the scene on each would be noise. It sits above whichever
+fork of the row is in view, and the forks are told apart by what differs:
+
+**What she carries.** Each fork shows the traits and energy she brings to it.
+Where a row holds more than one fork, a measure that differs between them lights
+up with its difference from the fork on the active path, and everything identical
+goes quiet. When nothing differs at all — she was pressed toward something she
+could not do, and did the same thing either way — the fork says so outright.
+
+**One active path.** Exactly one life is the player's at a time: the most recent
+one, running from the root to *now*. Every other fork that has been played still
+shows what happened there, receipt included.
+
 **What is drawn.** The full tree is 2^16 leaves and nobody will ever see most of
-it. Drawn are the nodes somebody has lived, plus the unpressed sibling of each —
-so the shape widens as it is explored, and every unexplored answer is on screen
-as something to tap. The frontier is one row deep by construction
-(`buildTree`); showing more would be 2^N again.
+it. Drawn are the forks somebody has reached; every fork still shows both of its
+answers, the unpressed one as a button. Rows double exactly as far as the player
+has pushed them.
 
 | | |
 |---|---|
 | **gold** | the life she is in |
-| **blue** | a life stepped out of, still running down its own branch |
-| **dashed** | an answer nobody has pressed — tap to go back and press it |
+| **blue** | a life stepped out of, still showing what happened |
+| **dashed** | an answer nobody has pressed |
 
-**The receipt lives on the answers.** The engine produces one signed list of
-contributions; positive pulls toward one option, negative toward the other. Put
-each cause on the answer it pulls toward and a table becomes a picture of a
-decision being made — same numbers, same sum.
+Pressing an unpressed answer somewhere behind a life is going back in time, and
+costs hindsight. Pressing an answer somebody already pressed moves into that life
+for free.
 
-**A branch can come out identical**, when the press failed or was never in
-reach: a second branch running the same life. That is the purest statement the
-game makes and is unreadable unless said out loud, so that answer reads
-*you pressed this — she did the other thing*.
+**The receipt belongs to the question.** It is the same whichever answer was
+pressed, so it is printed once per fork, split into what pulls toward each
+answer — same numbers, same sum — and only once the fork has been answered.
+
+**A branch can come out identical**, when the press was never in reach: a second
+branch running the same life. That is the purest statement the game makes and is
+unreadable unless said out loud, so that answer reads *she did the other thing
+instead*.
 
 **What is never drawn on an undecided fork:** cost, feasibility, pull shares,
-which arm is the tendency. All of it appears the instant the press lands and
+the receipt, which answer is the tendency. All of it appears the instant the press lands and
 stays forever after — which is roughly when a person gets to learn what a choice
 of theirs cost. Revealing it a moment earlier would replace the central illusion
 with a difficulty meter.

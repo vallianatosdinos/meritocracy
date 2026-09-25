@@ -1,30 +1,22 @@
-import { TUNING, type Resources } from '../engine'
-import type { Zoom } from './layout'
+import { TUNING } from '../engine'
 
 interface Props {
-  resources: Resources
+  energy: number
+  energyCap: number
   hindsightLeft: number
-  zoom: Zoom
-  onZoom: (z: Zoom) => void
+  hindsightTotal: number
+  /** Shown when the player is looking somewhere other than where she is. */
+  onNow: (() => void) | null
 }
-
-const ZOOMS: Array<[Zoom, string, string]> = [
-  ['moment', 'moment', 'This fork, and everything pushing on it'],
-  ['near', 'recent', 'The last few forks, so you can see how she got here'],
-  ['life', 'life', 'Everything she has lived, and every life you stepped out of'],
-]
 
 /**
  * The energy bar draws its own ceiling: the hatched region is the part she
- * cannot reach tonight because of sleep and stress, and it was set before the
+ * cannot reach at this question because of sleep and stress, set before the
  * player arrived.
  */
-export const Hud = ({ resources, hindsightLeft, zoom, onZoom }: Props): JSX.Element => {
+export const Hud = ({ energy, energyCap, hindsightLeft, hindsightTotal, onNow }: Props): JSX.Element => {
   const ceiling = TUNING.absoluteEnergyCeiling
-  const capPct = (resources.energyCap / ceiling) * 100
-  const energyPct = (resources.energy / ceiling) * 100
-  const low = resources.energyCap > 0 && resources.energy / resources.energyCap < 0.25
-
+  const low = energyCap > 0 && energy / energyCap < 0.25
   return (
     <div className="hud">
       <div className="meters">
@@ -33,16 +25,16 @@ export const Hud = ({ resources, hindsightLeft, zoom, onZoom }: Props): JSX.Elem
           <span className="meter-track">
             <span
               className={`meter-fill${low ? ' alarm' : ''}`}
-              style={{ width: `${Math.max(0, Math.min(100, energyPct))}%` }}
+              style={{ width: `${Math.max(0, Math.min(100, (energy / ceiling) * 100))}%` }}
             />
             <span
               className="meter-ghost"
-              style={{ left: `${Math.min(100, capPct)}%`, right: 0 }}
-              title="Out of reach tonight: sleep debt and stress load"
+              style={{ left: `${Math.min(100, (energyCap / ceiling) * 100)}%`, right: 0 }}
+              title="Out of reach here: sleep debt and stress load"
             />
           </span>
           <span className="meter-num">
-            {resources.energy}/{resources.energyCap}
+            {energy}/{energyCap}
           </span>
         </div>
         <div className="meter">
@@ -50,27 +42,17 @@ export const Hud = ({ resources, hindsightLeft, zoom, onZoom }: Props): JSX.Elem
           <span className="meter-track">
             <span
               className="meter-fill cold"
-              style={{
-                width: `${resources.hindsight > 0 ? (hindsightLeft / resources.hindsight) * 100 : 0}%`,
-              }}
+              style={{ width: `${hindsightTotal > 0 ? (hindsightLeft / hindsightTotal) * 100 : 0}%` }}
             />
           </span>
           <span className="meter-num">{hindsightLeft}</span>
         </div>
       </div>
-
-      <div className="zoomer" role="group" aria-label="Zoom">
-        {ZOOMS.map(([z, label, hint]) => (
-          <button
-            key={z}
-            className={`zoom-btn${zoom === z ? ' on' : ''}`}
-            title={hint}
-            onClick={() => onZoom(z)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {onNow && (
+        <button className="now-btn" onClick={onNow}>
+          now &darr;
+        </button>
+      )}
     </div>
   )
 }

@@ -39,7 +39,10 @@ export type ForkOutcome =
   | 'flowed'
   /** Went against it and made it. Paid for. */
   | 'resisted'
-  /** Went against it, paid, and failed anyway. Confabulation follows. */
+  /**
+   * Went against it, paid, and failed anyway. Only reachable through the
+   * choreography seam now -- without a performance there is no failure roll.
+   */
   | 'failed'
   /** Never in reach. She did not even get close. */
   | 'blocked'
@@ -201,12 +204,23 @@ const performRoll = (path: LifePath, rng: Rng): { roll: RollRecord[]; state: Mut
   return { roll, state }
 }
 
+/**
+ * Resolve a press. Deterministic: the same history and the same press always
+ * produce the same act.
+ *
+ * There used to be a dice roll here -- an affordable hard path succeeded with a
+ * probability derived from its resistance. It is gone, because it argued the
+ * wrong thing: an outcome that varies with no cause is exactly the uncaused
+ * wiggle room the game says does not exist. Now what she does is settled by
+ * what she has, and nothing else.
+ *
+ * `performance` remains as the seam for the button choreography, which is skill
+ * rather than chance and has not been built.
+ */
 const resolveFork = (
-  fork: Fork,
   appraisal: ForkAppraisal,
   intent: Intent,
   resources: Resources,
-  rng: Rng,
 ): { resolvedIndex: 0 | 1; outcome: ForkOutcome; energySpent: number } => {
   const wanted = appraisal.options[intent.optionIndex]
   if (wanted.isTendency) {
@@ -227,14 +241,11 @@ const resolveFork = (
   }
 
   const succeeded =
-    intent.performance === undefined
-      ? rng.next() < wanted.successChance
-      : intent.performance >= 1 - wanted.successChance
+    intent.performance === undefined ? true : intent.performance >= 1 - wanted.successChance
 
   return {
     resolvedIndex: succeeded ? intent.optionIndex : appraisal.tendencyIndex,
     outcome: succeeded ? 'resisted' : 'failed',
-    // Trying costs the same as succeeding. This is not a bug.
     energySpent: wanted.energyCost,
   }
 }
@@ -274,13 +285,7 @@ export const simulate = (path: LifePath, seed: number | string, intents: readonl
     const appraisal = appraiseFork(fork, state.traits, state.factors, state.resources)
     const energyBefore = state.resources.energy
     const energyCapAtFork = state.resources.energyCap
-    const { resolvedIndex, outcome, energySpent } = resolveFork(
-      fork,
-      appraisal,
-      intent,
-      state.resources,
-      rng.fork(`fork:${fork.id}`),
-    )
+    const { resolvedIndex, outcome, energySpent } = resolveFork(appraisal, intent, state.resources)
 
     state.resources.energy = Math.max(0, state.resources.energy - energySpent)
 

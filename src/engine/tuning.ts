@@ -6,8 +6,16 @@
  * wrong. `npm run validate` measures what they actually produce.
  */
 export const TUNING = {
-  /** Energy burned per unit of resistance when acting against the tendency. */
-  energyPerResistance: 1.45,
+  /**
+   * Energy burned per unit of resistance when acting against the tendency.
+   *
+   * Raised from 1.45 when the success roll was removed. With the roll, about
+   * half of affordable resists failed anyway; without it every one succeeds and
+   * the successes compound, which took lifetime agency from 50% to 89% -- a game
+   * arguing for free will. Pricing resistance higher restores the old shape:
+   * roughly half of lives can make the call under perfect play.
+   */
+  energyPerResistance: 2.2,
 
   /** The best energy ceiling any life in this build can reach. Defines 'impossible'. */
   absoluteEnergyCeiling: 100,
@@ -17,9 +25,9 @@ export const TUNING = {
   energyCapPerStressLoad: 0.25,
 
   /**
-   * Resistance at which the hard path becomes a coin flip, and the resistance
-   * at which it bottoms out. Tuned so "possible but brutal" is a real band and
-   * not a rounding error.
+   * Difficulty curve for the button choreography, when it exists. There is no
+   * dice roll behind these any more: without a performance, an affordable
+   * resist simply succeeds.
    */
   resistanceAtEvenOdds: 26,
   resistanceAtFloor: 70,

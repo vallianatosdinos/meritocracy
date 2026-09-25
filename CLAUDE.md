@@ -26,10 +26,12 @@ broken build, not a matter of taste. See docs/KEY-QUESTION.md.
 
 ## Design decisions that are settled
 
-See `docs/DESIGN.md`. The two that get accidentally undone:
+See `docs/DESIGN.md`. The ones that get accidentally undone:
 
 - **Energy is derived from history only, never earned by skill.** A willpower
   budget the player can earn argues *for* free will.
+- **No chance within a life.** The same history and the same press always
+  produce the same act. The opening roll is the only random thing.
 - **Nothing about a fork's difficulty is shown before the press** -- no cost, no
   feasibility, no pull share, no marker on the tendency. The only tell is the
   1.5% nudge. Revealing any of it earlier trades the central illusion for a
