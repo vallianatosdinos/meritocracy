@@ -9,7 +9,7 @@ Every visible thing in the game gets exactly one name here, so a piece of feedba
 - The pictures are drawn mock-ups of the live screen. Numbered markers point at its parts, and a key beside or under each picture names them.
 - The diagrams show things a single screenshot cannot: the shape of the whole tree, and what happens when you press.
 
-Everything here describes the build currently live (`8f0be17`).
+Everything here describes the build currently live (`a322144`).
 
 ## The big picture: the tree
 
@@ -20,6 +20,8 @@ The game is one **tree** per **life**: each **row** is one question, and each **
 A row grows only as far as you explore it: row 2 has two forks because both answers at the root have been pressed. Exactly one **path** is the **active path**; every other path you have played is a **side path**, and it keeps showing what happened on it. (The diagrams use the doc's own colours; in the game the active path is gold and side paths are blue.) A new **life** means a new roll, and a new, empty tree.
 
 The last row is the **anchor act**, the question the life exists for. Its forks wear a **double ring** and an "anchor act" label. Until you reach it, a dashed, double-ringed **anchor ghost** stands below the explored tree, showing the act and how many questions on it is, so you always see where the life is heading. It never says how hard the act will be.
+
+What you press and what it does to her are kept apart. When the answer you pressed was never in reach, she does the other one and arrives exactly as if you had pressed that. The two answers' branches then meet at one fork, a **joined branch**, and the pressed answer's outcome ends with a **join line**: "nothing in her changed · this branch joins …". Whether branches join is only worked out once both are pressed, so the tree never gives away a fork's difficulty early.
 
 ## The play screen
 
@@ -47,7 +49,7 @@ A **fork card** reads top to bottom: how she got here, what she carries in, the 
 | 8 | **Confabulation** | Her own account of doing what you did not press |
 | 9 | **Narration** | What actually happened |
 | 10 | **Spend line** | What it cost her: flowed, overrode, emptied out, or never in reach |
-| 11 | **Verdict line** | Opens the **receipt**: which answer she was always going to take |
+| 11 | **Verdict line** | Opens the **receipt**: "she was always going to" when the other answer was never in reach, "she leaned toward" when it was |
 | 12 | **Pull share** | Each answer's share of the force of her history |
 | 13 | **Cost chip** | What going that way costs: free, a cost, more than she had, or no road here |
 | 14 | **Cause** | One fact from her past: **rung tag**, what it was, how hard it pulls; **issued** if she was born with it |
@@ -75,6 +77,7 @@ Colour always means the same thing: **gold** is the path you are on, **blue** is
 | Hatched right end of the energy bar | **Ceiling** | Energy she cannot reach here, because of sleep debt and stress |
 | Text in a red frame, in italics | **Confabulation** | Her own explanation for doing what you did not press |
 | Gold text with a gold rule on its left | **Aside** | The narrator talking to you |
+| Two branches meeting at one fork | **Joined** | The press could not change her: she did the other answer and ended up in the same place |
 | Double ring and an "anchor act" label | **Anchor act** | The question the life exists for; dashed while it is still a ghost below the tree |
 
 ## Moving around
@@ -105,7 +108,7 @@ Two screens come before the tree: the **title screen**, then the **roll**, which
 | **Life label** | "Life one · Ten Digits" — which authored life you are about to play |
 | **Anchor line** | "Nadia calls her father, or she does not." — the one act the life exists to explain |
 | **Roll for a life** | The button that starts a new life |
-| **Build stamp** | "build 8f0be17" — which version of the game is on screen |
+| **Build stamp** | "build a322144" — which version of the game is on screen |
 | **Life number** | The number that fixes this life's roll; the same number gives the same birth |
 
 **Roll screen**
@@ -190,6 +193,7 @@ Every name in this doc, alphabetically, with where it is explained.
 | Fork count | "2 forks" in the scene header | Screen |
 | Go back, go-back line | Pressing an unplayed answer behind Now; free, and a new path starts there | Moving |
 | Issued | The part of a trait she was born with | Numbers |
+| Joined branch, join line | Two answers that lead to one fork because the press changed nothing; the line saying so under the outcome | Tree |
 | Life | Everything from one roll; another life means a new roll | Tree |
 | Life (scenario) | The authored scenario, "Ten Digits"; in code, a single roll of it is a run, a word never shown on screen | Before |
 | Lit, quiet | A measure that differs between forks, or is the same | Fork card |
@@ -221,4 +225,4 @@ Every name in this doc, alphabetically, with where it is explained.
 | Timestamp | "She is seven. The hallway." in the scene header | Screen |
 | Trait | One of eight 0–100 numbers describing her | Numbers |
 | Tree | The whole map of one life's forks, top to bottom | Tree |
-| Verdict line | "why · she was always going to …" over the receipt | Fork card |
+| Verdict line | "why · she was always going to …" or "why · she leaned toward …" over the receipt | Fork card |
