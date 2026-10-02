@@ -161,15 +161,9 @@ export const Graph = ({
               const x0 = cx(n) + (a.arm === 0 ? -armOffset(cardW) : armOffset(cardW))
               const y0 = cardTop(n) + cardH(n.key)
               const child = a.played ? model.nodes.get(a.childKey) : undefined
-              if (!child) {
-                return (
-                  <path
-                    key={`${n.key}${a.arm}`}
-                    className="wire w-unexplored"
-                    d={`M ${x0} ${y0} L ${x0} ${y0 + 30}`}
-                  />
-                )
-              }
+              // An answer nobody has pressed draws nothing: a branch exists
+              // only once it leads somewhere.
+              if (!child) return null
               const x1 = cx(child)
               const y1 = cardTop(child)
               const c = (y1 - y0) * 0.45
@@ -181,12 +175,6 @@ export const Graph = ({
                 />
               )
             }),
-          )}
-          {ghost && (
-            <path
-              className="wire w-ghost"
-              d={`M ${ghost.x} ${ghost.y - GHOST_GAP + 6} L ${ghost.x} ${ghost.y}`}
-            />
           )}
         </svg>
 

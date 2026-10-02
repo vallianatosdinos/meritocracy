@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { GAME, getPath } from '../content'
-import { energyArrival, SCALE_NAMES, simulate, type RunResult } from '../engine'
+import { SCALE_NAMES, simulate, type RunResult } from '../engine'
 import {
   activeHead,
   continuation,
@@ -10,7 +10,6 @@ import {
 } from './explore'
 import { Graph, type ScrollRequest } from './Graph'
 import { buildGraph, canonOf } from './graph'
-import { Hud } from './Hud'
 import { RollItem } from './Roll'
 
 const PATH = getPath('ten-digits')
@@ -138,32 +137,12 @@ export const App = (): JSX.Element => {
   const next = nextKey ? model.nodes.get(nextKey) : undefined
   const now = activeHead(exploration)
 
-  // What she spent here, along the path being looked at: the answer pressed
-  // most recently among those leading that way (two can, when joined).
-  const leading = (focus?.arms ?? []).filter(
-    (a) => a.played && head !== null && head.startsWith(a.childKey) && head.length > (focus?.depth ?? 0),
-  )
-  const latest = leading.sort(
-    (a, b) =>
-      exploration.presses.indexOf((focus?.key ?? '') + a.arm) -
-      exploration.presses.indexOf((focus?.key ?? '') + b.arm),
-  )[leading.length - 1]
-  const spentHere = latest?.record?.energySpent ?? 0
-
   const parentFork = parent ? PATH.forks[parent.depth] : undefined
   const nextFork = next ? PATH.forks[next.depth] : undefined
   const arrival = focus?.arrival
 
   return (
     <div className="stage">
-      <Hud
-        energy={focus?.values.energy ?? 0}
-        energyCap={focus?.energyCap ?? 0}
-        spent={spentHere}
-        arrival={focus && !focus.isEnd ? energyArrival(PATH, focus.depth) : null}
-        onNow={focusKey !== now ? () => go(now) : null}
-      />
-
       {/* The step before, always in reach. */}
       <button
         className={`peek up${parent ? '' : ' empty'}`}
@@ -184,15 +163,24 @@ export const App = (): JSX.Element => {
         )}
       </button>
 
-      <Graph
-        path={PATH}
-        model={model}
-        focusKey={focus?.key ?? ''}
-        scrollReq={scrollReq}
-        onPress={onPress}
-        onFocus={(key) => go(key)}
-        onRestart={reset}
-      />
+      {/* The tree, with a way back to where she stands whenever the player has
+          wandered off it. Energy is on each card, not in a header. */}
+      <div className="tree-area">
+        <Graph
+          path={PATH}
+          model={model}
+          focusKey={focus?.key ?? ''}
+          scrollReq={scrollReq}
+          onPress={onPress}
+          onFocus={(key) => go(key)}
+          onRestart={reset}
+        />
+        {focusKey !== now && (
+          <button className="now-btn" onClick={() => go(now)}>
+            now &darr;
+          </button>
+        )}
+      </div>
 
       {/* The step after, always in reach. */}
       <button
