@@ -1,5 +1,3 @@
-import { rewindCost } from '../engine'
-
 /**
  * What the player has explored.
  *
@@ -14,10 +12,9 @@ import { rewindCost } from '../engine'
 export interface Exploration {
   /** Heads of every life lived, least recent first. The last is the active one. */
   heads: string[]
-  hindsightSpent: number
 }
 
-export const initialExploration = (): Exploration => ({ heads: [''], hindsightSpent: 0 })
+export const initialExploration = (): Exploration => ({ heads: [''] })
 
 export const activeHead = (e: Exploration): string => e.heads[e.heads.length - 1] ?? ''
 
@@ -45,55 +42,35 @@ export const continuation = (e: Exploration, key: string): string | null => {
 
 export type PressResult =
   /** A life answered the question it was standing at, or a new one began. */
-  | { kind: 'played'; next: Exploration; cost: number }
+  | { kind: 'played'; next: Exploration }
   /** Somebody already pressed that answer; the player moved into that life. */
   | { kind: 'switched'; next: Exploration }
-  /** Going back that far costs more hindsight than is left. */
-  | { kind: 'refused'; cost: number }
-
-/** What pressing an answer would cost in hindsight, without pressing it. */
-export const pressCost = (e: Exploration, nodeKey: string, arm: 0 | 1): number => {
-  const explored = exploredKeys(e)
-  if (e.heads.includes(nodeKey) || explored.has(nodeKey + arm)) return 0
-  return rewindCost(activeHead(e).length, nodeKey.length)
-}
 
 /**
  * Press an answer anywhere on the tree.
  *
- * Three cases, and only one of them costs anything:
+ * Three cases, and none of them costs anything. Going back is free on purpose:
+ * the game wants the player comparing paths, not rationing them.
  *  - the node is where some life is standing: that life answers and moves on;
  *  - the answer was pressed before: the player steps into that life;
  *  - the answer was never pressed, somewhere behind a life: going back in
- *    time, paid for in hindsight.
+ *    time, and a new path starts there.
  */
-export const press = (
-  e: Exploration,
-  nodeKey: string,
-  arm: 0 | 1,
-  hindsightTotal: number,
-): PressResult => {
+export const press = (e: Exploration, nodeKey: string, arm: 0 | 1): PressResult => {
   const child = nodeKey + arm
 
   const at = e.heads.indexOf(nodeKey)
   if (at >= 0) {
     return {
       kind: 'played',
-      next: { ...e, heads: [...e.heads.filter((_, i) => i !== at), child] },
-      cost: 0,
+      next: { heads: [...e.heads.filter((_, i) => i !== at), child] },
     }
   }
 
   if (exploredKeys(e).has(child)) {
     const target = continuation(e, child) ?? child
-    return { kind: 'switched', next: { ...e, heads: [...e.heads.filter((h) => h !== target), target] } }
+    return { kind: 'switched', next: { heads: [...e.heads.filter((h) => h !== target), target] } }
   }
 
-  const cost = rewindCost(activeHead(e).length, nodeKey.length)
-  if (e.hindsightSpent + cost > hindsightTotal) return { kind: 'refused', cost }
-  return {
-    kind: 'played',
-    next: { heads: [...e.heads, child], hindsightSpent: e.hindsightSpent + cost },
-    cost,
-  }
+  return { kind: 'played', next: { heads: [...e.heads, child] } }
 }

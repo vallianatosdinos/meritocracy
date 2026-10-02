@@ -34,7 +34,7 @@
   supports it; there is no mechanic. Currently those factors are shown, marked
   fixed, and that is all.
 - **Cross-run persistence** — the narrator drifting from "you" to "she" across
-  runs, and the late reveal that the hindsight budget was set by the opening roll.
+  lives.
 - **Audio.** This game is 60% audio and there is none.
 
 ## Platform plan

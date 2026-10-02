@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react'
 import { GAME, getPath } from '../content'
-import { SCALE_SHORT, simulate, type RunResult } from '../engine'
+import { SCALE_NAMES, simulate, type RunResult } from '../engine'
 import {
   activeHead,
   continuation,
   initialExploration,
   press,
-  pressCost,
   type Exploration,
 } from './explore'
 import { Graph, type ScrollRequest } from './Graph'
@@ -34,8 +33,6 @@ export const App = (): JSX.Element => {
     [seed, exploration, cache],
   )
   const root = useMemo(() => simulate(PATH, seed, []), [seed])
-  const hindsightTotal = root.resources.hindsight
-  const hindsightLeft = Math.max(0, hindsightTotal - exploration.hindsightSpent)
 
   const go = (key: string, mode: ScrollRequest['mode'] = 'focus'): void => {
     setFocusKey(key)
@@ -49,11 +46,6 @@ export const App = (): JSX.Element => {
     setExploration(initialExploration())
     setFocusKey('')
     setScrollReq({ key: '', mode: 'focus', nonce: 0 })
-  }
-
-  const costOf = (nodeKey: string, arm: 0 | 1): { cost: number; affordable: boolean } => {
-    const cost = pressCost(exploration, nodeKey, arm)
-    return { cost, affordable: exploration.hindsightSpent + cost <= hindsightTotal }
   }
 
   /**
@@ -70,9 +62,7 @@ export const App = (): JSX.Element => {
       go(a.childKey)
       return
     }
-    const result = press(exploration, nodeKey, arm, hindsightTotal)
-    if (result.kind === 'refused') return
-    setExploration(result.next)
+    setExploration(press(exploration, nodeKey, arm).next)
     go(nodeKey, 'reveal')
   }
 
@@ -156,8 +146,6 @@ export const App = (): JSX.Element => {
       <Hud
         energy={focus?.values.energy ?? 0}
         energyCap={focus?.energyCap ?? 0}
-        hindsightLeft={hindsightLeft}
-        hindsightTotal={hindsightTotal}
         onNow={focusKey !== now ? () => go(now) : null}
       />
 
@@ -170,7 +158,7 @@ export const App = (): JSX.Element => {
         {parent && parentFork && arrival ? (
           <>
             <span className="pk-arrow">&uarr;</span>
-            <span className="pk-scale">{SCALE_SHORT[parentFork.scale]}</span>
+            <span className="pk-scale">{SCALE_NAMES[parentFork.scale]}</span>
             {/* What she did comes first: on a narrow screen the timestamp is the
                 part that should be cut, not the answer. */}
             <span className="pk-did">{parentFork.options[arrival.resolvedIndex].label}</span>
@@ -186,7 +174,6 @@ export const App = (): JSX.Element => {
         model={model}
         focusKey={focus?.key ?? ''}
         scrollReq={scrollReq}
-        costOf={costOf}
         onPress={onPress}
         onFocus={(key) => go(key)}
         onRestart={reset}
@@ -201,7 +188,7 @@ export const App = (): JSX.Element => {
         {next ? (
           <>
             <span className="pk-arrow">&darr;</span>
-            <span className="pk-scale">{nextFork ? SCALE_SHORT[nextFork.scale] : 'END'}</span>
+            <span className="pk-scale">{nextFork ? SCALE_NAMES[nextFork.scale] : 'END'}</span>
             <span className="pk-text">{nextFork ? nextFork.when : 'after'}</span>
           </>
         ) : (

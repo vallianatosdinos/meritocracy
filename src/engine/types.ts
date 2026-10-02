@@ -45,8 +45,6 @@ export interface Resources {
   health: number
   /** 0-100. Suppresses energyCap. The cheapest lever in the game. */
   sleepDebt: number
-  /** Meta-currency: the cost of stepping out of the life and rewinding it. */
-  hindsight: number
 }
 
 export type ResourceDeltas = Omit<Resources, 'energyCap'>
@@ -112,6 +110,12 @@ export interface ForkOption {
    * the mind explaining a decision it did not make.
    */
   confabulation?: string
+  /**
+   * Narrator aside for when the player pressed THIS answer, printed under its
+   * outcome. Use it when the aside depends on the press; otherwise use the
+   * fork's.
+   */
+  aside?: string
   grants?: Factor[]
   traitDeltas?: Partial<Record<TraitId, number>>
   resourceDeltas?: Partial<ResourceDeltas>
@@ -132,7 +136,9 @@ export interface Fork {
    */
   anchor?: boolean
   /**
-   * Narrator aside shown after resolution -- the cynical voice.
+   * Narrator aside shown after resolution -- the cynical voice. It is printed
+   * whichever answer was pressed, so it must not assume one; an aside that
+   * does belongs on that option.
    */
   aside?: string
 }
@@ -150,11 +156,6 @@ export interface RollOutcome {
   factors: Factor[]
   traitBaselineDeltas?: Partial<Record<TraitId, number>>
   resourceDeltas?: Partial<ResourceDeltas>
-  /**
-   * How much rewinding this life affords. Set here, before the player has done
-   * anything, and deliberately not surfaced as "your" budget until late.
-   */
-  hindsightDelta?: number
 }
 
 export interface RollCategory {

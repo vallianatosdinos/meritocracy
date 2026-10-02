@@ -1,7 +1,6 @@
 import { makeRng, type Rng } from './rng'
 import { appraiseFork, computeEnergyCap } from './resolve'
 import type { CausalScale } from './scales'
-import { TUNING } from './tuning'
 import {
   clampTrait,
   cloneTraitSheet,
@@ -118,7 +117,6 @@ const applyResourceDeltas = (
   if (deltas.health !== undefined) resources.health += deltas.health
   if (deltas.sleepDebt !== undefined)
     resources.sleepDebt = Math.max(0, Math.min(100, resources.sleepDebt + deltas.sleepDebt))
-  if (deltas.hindsight !== undefined) resources.hindsight += deltas.hindsight
 }
 
 const applyTraitDeltas = (
@@ -166,9 +164,6 @@ const weightedPick = (outcomes: readonly RollOutcome[], rng: Rng): RollOutcome =
 
 /**
  * The roll. Everything here happened to the character, not because of her.
- * It also quietly sets the hindsight budget -- how much of this life the player
- * will be allowed to re-examine. That is not surfaced as a roll result until
- * much later; see docs/DESIGN.md, "The third reveal".
  */
 const performRoll = (path: LifePath, rng: Rng): { roll: RollRecord[]; state: MutableState } => {
   const state: MutableState = {
@@ -193,7 +188,6 @@ const performRoll = (path: LifePath, rng: Rng): { roll: RollRecord[]; state: Mut
     // point at, which is precisely the complaint.
     applyTraitDeltas(state, outcome.traitBaselineDeltas, null)
     applyResourceDeltas(state.resources, outcome.resourceDeltas)
-    if (outcome.hindsightDelta) state.resources.hindsight += outcome.hindsightDelta
     for (const f of outcome.factors) acquireFactor(state, { ...f, locked: true }, null)
   }
 
@@ -348,12 +342,6 @@ export const peek = (run: RunResult): { fork: Fork; appraisal: ForkAppraisal } |
     appraisal: appraiseFork(fork, run.traits, run.factors, run.resources),
   }
 }
-
-export const rewindCost = (fromIndex: number, toIndex: number): number =>
-  Math.max(
-    TUNING.hindsightMinimumCost,
-    Math.abs(fromIndex - toIndex) * TUNING.hindsightPerForkOfDistance,
-  )
 
 /**
  * The experiment. Change one earlier intent, keep every later button press

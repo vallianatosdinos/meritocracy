@@ -163,9 +163,11 @@ has pushed them.
 | **blue** | a life stepped out of, still showing what happened |
 | **dashed** | an answer nobody has pressed |
 
-Pressing an unpressed answer somewhere behind a life is going back in time, and
-costs hindsight. Pressing an answer somebody already pressed moves into that life
-for free.
+Pressing an unpressed answer somewhere behind a life is going back in time.
+Pressing an answer somebody already pressed moves into that life. **Neither costs
+anything.** An earlier version charged a hindsight budget for going back; it was
+removed because the game wants the player comparing paths, and a budget made
+exploring feel like spending.
 
 **The receipt belongs to the question.** It is the same whichever answer was
 pressed, so it is printed once per fork, split into what pulls toward each
@@ -255,8 +257,8 @@ mechanism behind "sometimes it's as simple as sleeping earlier".
 
 **~15 minutes for a player's first life, 6–8 minutes for every life after.**
 
-The first run is not just a run: it has to teach the receipt, the wall, and the
-rewind, none of which any other game has taught this player. Pricing that as ten
+The first run is not just a run: it has to teach the receipt, the wall, and going
+back, none of which any other game has taught this player. Pricing that as ten
 minutes means teaching none of them properly. Later runs compress hard, because
 by then the player has the vocabulary and is there for the variation.
 

@@ -49,23 +49,26 @@ export const SCALE_LABELS: Record<CausalScale, string> = {
   seconds: 'seconds before',
 }
 
-/** Short tag for dense UI (the timeline spine, receipt gutters). */
-export const SCALE_SHORT: Record<CausalScale, string> = {
-  evolution: 'EVO',
-  culture: 'CULT',
-  ancestry: 'ANCE',
-  genes: 'GENE',
-  prenatal: 'PRE',
-  infancy: 'INF',
-  childhood: 'CHLD',
-  adolescence: 'ADOL',
-  years: 'YRS',
-  months: 'MOS',
-  weeks: 'WKS',
-  days: 'DAYS',
-  hours: 'HRS',
-  minutes: 'MIN',
-  seconds: 'SEC',
+/**
+ * The rung tag: one word per rung, always spelled out. Abbreviations were tried
+ * and read as noise.
+ */
+export const SCALE_NAMES: Record<CausalScale, string> = {
+  evolution: 'Evolution',
+  culture: 'Culture',
+  ancestry: 'Ancestry',
+  genes: 'Genes',
+  prenatal: 'Prenatal',
+  infancy: 'Infancy',
+  childhood: 'Childhood',
+  adolescence: 'Adolescence',
+  years: 'Years',
+  months: 'Months',
+  weeks: 'Weeks',
+  days: 'Days',
+  hours: 'Hours',
+  minutes: 'Minutes',
+  seconds: 'Seconds',
 }
 
 export const scaleIndex = (s: CausalScale): number => SCALES.indexOf(s)

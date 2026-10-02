@@ -34,10 +34,6 @@ export const TUNING = {
   successFloor: 0.05,
   successCeiling: 0.97,
 
-  /** Hindsight cost to rewind, per fork of distance travelled backwards. */
-  hindsightPerForkOfDistance: 1,
-  hindsightMinimumCost: 2,
-
   /** Contributions smaller than this are folded into "and a hundred other things". */
   receiptNoiseFloor: 0.75,
 } as const

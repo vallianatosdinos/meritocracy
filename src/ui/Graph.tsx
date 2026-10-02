@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { SCALE_LABELS, SCALE_SHORT, type LifePath } from '../engine'
+import { SCALE_LABELS, SCALE_NAMES, type LifePath } from '../engine'
 import { ForkCard } from './ForkCard'
 import type { GraphModel, NodeView } from './graph'
 
@@ -15,7 +15,6 @@ interface Props {
   model: GraphModel
   focusKey: string
   scrollReq: ScrollRequest
-  costOf: (nodeKey: string, arm: 0 | 1) => { cost: number; affordable: boolean }
   onPress: (nodeKey: string, arm: 0 | 1) => void
   onFocus: (nodeKey: string) => void
   onRestart: () => void
@@ -28,6 +27,11 @@ const CARD_GAP = 30
 const EST_HEADER = 170
 const EST_CARD = 420
 const GHOST_GAP = 40
+/** Card padding (0.8rem) and the gap between answer columns (0.5rem), in px. */
+const CARD_PAD = 12.8
+const ARM_GAP = 8
+/** How far each answer column's middle sits from the card's middle. */
+const armOffset = (cardW: number): number => (cardW - 2 * CARD_PAD - ARM_GAP) / 4 + ARM_GAP / 2
 
 const useWidth = (): number => {
   const [w, setW] = useState(() => (typeof window === 'undefined' ? 402 : window.innerWidth))
@@ -66,7 +70,6 @@ export const Graph = ({
   model,
   focusKey,
   scrollReq,
-  costOf,
   onPress,
   onFocus,
   onRestart,
@@ -155,7 +158,7 @@ export const Graph = ({
         <svg className="wires" width={width} height={contentH + 600} aria-hidden="true">
           {nodes.map((n) =>
             (n.arms ?? []).map((a) => {
-              const x0 = cx(n) + (a.arm === 0 ? -cardW / 4 : cardW / 4)
+              const x0 = cx(n) + (a.arm === 0 ? -armOffset(cardW) : armOffset(cardW))
               const y0 = cardTop(n) + cardH(n.key)
               const child = a.played ? model.nodes.get(a.childKey) : undefined
               if (!child) {
@@ -206,7 +209,7 @@ export const Graph = ({
                 <>
                   <div className="sh-top">
                     <span className="sh-scale" title={SCALE_LABELS[fork.scale]}>
-                      {SCALE_SHORT[fork.scale]}
+                      {SCALE_NAMES[fork.scale]}
                     </span>
                     <span className="sh-when">{fork.when}</span>
                     {row.keys.length > 1 && (
@@ -252,7 +255,6 @@ export const Graph = ({
                   if (el) answersEls.current.set(n.key, el)
                   else answersEls.current.delete(n.key)
                 }}
-                costOf={costOf}
                 onPress={onPress}
                 onFocus={onFocus}
                 onRestart={onRestart}
@@ -270,7 +272,7 @@ export const Graph = ({
             <div className="ag-card">
               <div className="sh-top">
                 <span className="sh-scale" title={SCALE_LABELS[anchorFork.scale]}>
-                  {SCALE_SHORT[anchorFork.scale]}
+                  {SCALE_NAMES[anchorFork.scale]}
                 </span>
                 <span className="sh-when">{anchorFork.when}</span>
               </div>

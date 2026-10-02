@@ -5,9 +5,7 @@ import {
   computeEnergyCap,
   isPlayableScale,
   replayWithEdit,
-  rewindCost,
   simulate,
-  TUNING,
   type Intent,
 } from './index'
 
@@ -57,11 +55,6 @@ describe('rewind', () => {
     expect(short.records.map((r) => r.resolvedIndex)).toEqual(
       long.records.slice(0, 6).map((r) => r.resolvedIndex),
     )
-  })
-
-  it('costs hindsight proportional to the distance travelled back', () => {
-    expect(rewindCost(15, 14)).toBe(TUNING.hindsightMinimumCost)
-    expect(rewindCost(15, 1)).toBeGreaterThan(rewindCost(15, 10))
   })
 })
 

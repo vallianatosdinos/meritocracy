@@ -1,7 +1,7 @@
 import type { Ref } from 'react'
 import {
   SCALE_LABELS,
-  SCALE_SHORT,
+  SCALE_NAMES,
   TRAIT_META,
   type Fork,
   type ForkRecord,
@@ -20,7 +20,6 @@ interface Props {
   focused: boolean
   width: number
   answersRef: Ref<HTMLDivElement>
-  costOf: (nodeKey: string, arm: 0 | 1) => { cost: number; affordable: boolean }
   onPress: (nodeKey: string, arm: 0 | 1) => void
   onFocus: (nodeKey: string) => void
   onRestart: () => void
@@ -113,7 +112,7 @@ const Items = ({ pull }: { pull: ArmPull }): JSX.Element => {
       {sorted.map((c, i) => (
         <div className={`r-item${c.locked ? ' locked' : ''}`} key={`${c.factorId ?? c.label}-${i}`}>
           <span className="sc" title={SCALE_LABELS[c.scale]}>
-            {SCALE_SHORT[c.scale]}
+            {SCALE_NAMES[c.scale]}
           </span>
           <span className="lb">
             {c.label}
@@ -124,7 +123,6 @@ const Items = ({ pull }: { pull: ArmPull }): JSX.Element => {
       ))}
       {pull.folded.count > 0 && (
         <div className="r-item locked">
-          <span className="sc">&mdash;</span>
           <span className="lb">
             {pull.folded.count} smaller thing{pull.folded.count === 1 ? '' : 's'}
           </span>
@@ -159,7 +157,6 @@ export const ForkCard = ({
   focused,
   width,
   answersRef,
-  costOf,
   onPress,
   onFocus,
   onRestart,
@@ -219,16 +216,18 @@ export const ForkCard = ({
       {via}
       <Carried node={node} row={row} reference={reference} />
 
+      {/* One column per answer: the button, then -- once pressed -- what came
+          of it, straight underneath, so the two outcomes read side by side and
+          each sits above the branch it sends down the tree. */}
       <div className="answers" ref={answersRef}>
         {node.arms.map((a) => {
           const opt = fork.options[a.arm]
-          const { cost, affordable } = costOf(node.key, a.arm)
+          const r = a.played ? a.record : null
           const goingBack = !a.played && !node.isHead
           const classes = [
             'answer',
             a.played ? (a.onActivePath ? 'played active' : 'played parallel') : 'unplayed',
-            a.record?.confabulated ? 'confab' : '',
-            goingBack && !affordable ? 'cold' : '',
+            r?.confabulated ? 'confab' : '',
             // The nudge: on an undecided fork the tendency is 1.5% larger and one
             // step warmer, and nothing else marks it.
             node.isHead && appraisal.options[a.arm].isTendency ? 'lean' : '',
@@ -236,53 +235,44 @@ export const ForkCard = ({
             .filter(Boolean)
             .join(' ')
           return (
-            <button
-              key={a.arm}
-              className={classes}
-              disabled={goingBack && !affordable}
-              onClick={(ev) => {
-                ev.stopPropagation()
-                onPress(node.key, a.arm)
-              }}
-            >
-              <span className="a-label">{opt.label}</span>
-              {a.played && a.record && (
-                <span className="a-result">
-                  {a.record.confabulated
-                    ? `she did “${fork.options[a.record.resolvedIndex].label}” instead`
-                    : spentLine(a.record)}
-                </span>
-              )}
-              {goingBack && (
-                <span className="a-back">
-                  {affordable ? `see what happens · ${cost} hindsight` : `needs ${cost} hindsight`}
-                </span>
-              )}
-            </button>
-          )
-        })}
-      </div>
-
-      {node.arms
-        .filter((a) => a.played && a.record)
-        .map((a) => {
-          const r = a.record as ForkRecord
-          return (
-            <div key={`o${a.arm}`} className={`outcome ${a.onActivePath ? 'active' : 'parallel'}`}>
-              <h4>
-                you pressed &ldquo;{fork.options[a.arm].label}&rdquo;
-                {r.confabulated ? ' · she did the other thing' : ''}
-              </h4>
-              {r.confabulated && r.confabulation && (
-                <div className="confab">
-                  <p>{r.confabulation}</p>
+            <div key={a.arm} className="arm">
+              <button
+                className={classes}
+                onClick={(ev) => {
+                  ev.stopPropagation()
+                  onPress(node.key, a.arm)
+                }}
+              >
+                <span className="a-label">{opt.label}</span>
+                {r && (
+                  <span className="a-result">
+                    {r.confabulated
+                      ? `she did “${fork.options[r.resolvedIndex].label}” instead`
+                      : spentLine(r)}
+                  </span>
+                )}
+                {goingBack && <span className="a-back">see what happens</span>}
+              </button>
+              {r && (
+                <div className={`outcome ${a.onActivePath ? 'active' : 'parallel'}`}>
+                  <h4>
+                    you pressed this
+                    {r.confabulated ? ' · she did the other thing' : ''}
+                  </h4>
+                  {r.confabulated && r.confabulation && (
+                    <div className="confab">
+                      <p>{r.confabulation}</p>
+                    </div>
+                  )}
+                  <p className="narration">{r.narration}</p>
+                  <p className="spent">{spentLine(r)}</p>
+                  {opt.aside && <p className="aside">{opt.aside}</p>}
                 </div>
               )}
-              <p className="narration">{r.narration}</p>
-              <p className="spent">{spentLine(r)}</p>
             </div>
           )
         })}
+      </div>
 
       {/* The receipt belongs to the question, not to an answer: it is the same
           whichever one was pressed, so it is printed once, and only once the

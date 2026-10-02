@@ -47,7 +47,6 @@ export const tenDigits: LifePath = {
     money: 300,
     health: 70,
     sleepDebt: 20,
-    hindsight: 0, // the roll decides this, and does not mention that it has
   },
 
   /* ================================================================ *
@@ -65,7 +64,6 @@ export const tenDigits: LifePath = {
           label: 'Three generations of not enough',
           quip: 'Ooh. Your great-grandmother spent a winter hungry and your stress axis still has the receipt.',
           weight: 3,
-          hindsightDelta: 5,
           traitBaselineDeltas: { stressLoad: 10, threatSensitivity: 6, conscientiousness: 4 },
           factors: [
             {
@@ -85,7 +83,6 @@ export const tenDigits: LifePath = {
           label: 'Dull, uninterrupted, safe',
           quip: 'Nice! Nothing happened to your ancestors. That is worth more than a degree.',
           weight: 2,
-          hindsightDelta: 9,
           traitBaselineDeltas: { stressLoad: -6, trust: 6 },
           factors: [
             {
@@ -102,7 +99,6 @@ export const tenDigits: LifePath = {
           label: 'Moved at gunpoint, twice',
           quip: 'Your family learned that leaving quietly is a survival skill. Congratulations on the inheritance.',
           weight: 2,
-          hindsightDelta: 4,
           traitBaselineDeltas: { threatSensitivity: 10, trust: -8, noveltySeeking: 4 },
           factors: [
             {
@@ -127,7 +123,6 @@ export const tenDigits: LifePath = {
           label: 'A father with a temper and a pension worry',
           quip: 'Oops! I guess you were born in the wrong family!',
           weight: 4,
-          hindsightDelta: 4,
           traitBaselineDeltas: { threatSensitivity: 12, trust: -8, impulseControl: -4 },
           factors: [
             {
@@ -147,7 +142,6 @@ export const tenDigits: LifePath = {
           label: 'A mother working two jobs, mostly absent',
           quip: 'She loved you in the eleven minutes a day she was awake for it. Those minutes count, just not for much.',
           weight: 3,
-          hindsightDelta: 6,
           traitBaselineDeltas: { belonging: -8, conscientiousness: 6 },
           factors: [
             {
@@ -164,7 +158,6 @@ export const tenDigits: LifePath = {
           label: 'Boring parents who stayed married',
           quip: 'Well look at you. You have been handed the single best predictor in the whole dataset.',
           weight: 2,
-          hindsightDelta: 10,
           traitBaselineDeltas: { trust: 10, belonging: 10, threatSensitivity: -8 },
           factors: [
             {
@@ -188,7 +181,6 @@ export const tenDigits: LifePath = {
           label: 'A library, a park, and nothing much happening',
           quip: 'Nice! Your neighbourhood was chill and stimulating. That helps, I guess!',
           weight: 2,
-          hindsightDelta: 8,
           traitBaselineDeltas: { impulseControl: 8, noveltySeeking: 6, stressLoad: -6 },
           factors: [
             {
@@ -205,7 +197,6 @@ export const tenDigits: LifePath = {
           label: 'A main road, sirens, damp',
           quip: 'Lead in the pipes, noise at 3am. Your frontal cortex is going to develop around all of that.',
           weight: 3,
-          hindsightDelta: 5,
           traitBaselineDeltas: { impulseControl: -10, stressLoad: 10 },
           resourceDeltas: { health: -5 },
           factors: [
@@ -233,7 +224,6 @@ export const tenDigits: LifePath = {
           label: 'Needs nine hours, will never get them',
           quip: 'Rough. Your sleep requirement is genetic and your shift pattern is not negotiable.',
           weight: 3,
-          hindsightDelta: 5,
           traitBaselineDeltas: { impulseControl: -4 },
           factors: [
             {
@@ -250,7 +240,6 @@ export const tenDigits: LifePath = {
           label: 'Sleeps badly, functions anyway',
           quip: 'You got the useful allele. You did not earn it. Enjoy.',
           weight: 2,
-          hindsightDelta: 8,
           traitBaselineDeltas: { impulseControl: 6, stressLoad: -4 },
           factors: [
             {
@@ -267,7 +256,6 @@ export const tenDigits: LifePath = {
           label: 'A startle response like a tripwire',
           quip: 'Amygdala came pre-tuned. Nothing you do will retune it much.',
           weight: 2,
-          hindsightDelta: 4,
           traitBaselineDeltas: { threatSensitivity: 12, empathyReach: 4 },
           factors: [
             {
@@ -306,6 +294,8 @@ export const tenDigits: LifePath = {
           confabulation:
             'She stayed under the desk. She was being sensible. She was seven and she was being sensible, ' +
             'and she will describe it that way for thirty years.',
+          aside:
+            'You wanted her to go in. Have a look at what you were asking a seven-year-old to overrule.',
           grants: [
             {
               id: 'f.learned-voice',
@@ -326,6 +316,9 @@ export const tenDigits: LifePath = {
           confabulation:
             'She went in. She will not be able to explain why, later, and will settle on "I was a brave kid", ' +
             'which is not what the tape shows.',
+          aside:
+            'You let her stay. It did not feel like deciding, did it? That is what a tendency feels like ' +
+            'from the inside.',
           grants: [
             {
               id: 'f.learned-quiet',
@@ -352,8 +345,6 @@ export const tenDigits: LifePath = {
           { tag: 'hyperreactive', coef: -6 },
         ],
       },
-      aside:
-        'You wanted her to go in. Have a look at what you were asking a seven-year-old to overrule.',
     },
     {
       id: 'the-report-card',

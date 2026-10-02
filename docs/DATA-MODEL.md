@@ -89,6 +89,11 @@ this while the player pressed the other one**. Every option needs one, including
 the "good" ones — being overridden into doing the right thing is just as
 unchosen.
 
+`aside` is the narrator talking to the player. On the fork it is printed
+whichever answer was pressed, so it must not assume one. An aside that reacts to
+the press ("You wanted her to go in…") goes on that option instead, and is
+printed under that answer's outcome.
+
 ## 6. `LifePath`
 
 `roll` (the unchosen) + `baselineTraits` + `forks` + `epilogue`. One file, one
@@ -121,6 +126,6 @@ argument.
 
 - **Ancestral rewind** — going back past `prenatal` to play an ancestor. The data
   model supports the scales; there is no mechanic.
-- **Cross-run persistence** — the narrator's drift from "you" to "she", and the
-  late reveal that the hindsight budget was itself set by the roll.
+- **Cross-run persistence** — the narrator's drift from "you" to "she" across
+  lives.
 - **Button choreography** — see `Intent.performance`, which is the seam.
