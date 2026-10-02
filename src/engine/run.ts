@@ -91,15 +91,33 @@ export interface RunResult {
 const CONTINUOUS_BAND: readonly CausalScale[] = ['days', 'hours', 'minutes', 'seconds']
 
 /**
- * Energy resets on entering a new scale rung, except inside the final day.
+ * Energy resets at every fork before the final day, and carries over within it.
  *
- * The biographical scenes (years, months, weeks) each get their own budget --
- * they are separate occasions, not one long afternoon. The endgame does not:
- * days/hours/minutes/seconds share a single pool, which is why a bad bedtime is
- * still on the books at 23:41.
+ * Before the final day, each fork is its own occasion -- two Childhood forks
+ * are four years apart -- so she arrives at each one with a full budget,
+ * whatever the last one cost. The final day does not reset: days, hours,
+ * minutes and seconds share a single pool, which is why a bad bedtime is still
+ * on the books at 23:41.
  */
 const carriesEnergy = (prev: CausalScale | null, next: CausalScale): boolean =>
   prev !== null && CONTINUOUS_BAND.includes(prev) && CONTINUOUS_BAND.includes(next)
+
+export type EnergyArrival =
+  /** A new occasion: she starts this fork with a full budget. */
+  | 'reset'
+  /** The final day's first fork: full now, and from here it carries over. */
+  | 'day-begins'
+  /** Same day: what she spent at earlier forks is still spent. */
+  | 'carried'
+
+/** How her energy arrives at a fork. Shown on the card, so the rule is never a surprise. */
+export const energyArrival = (path: LifePath, index: number): EnergyArrival => {
+  const fork = path.forks[index]
+  if (!fork) return 'reset'
+  const prev = index > 0 ? (path.forks[index - 1]?.scale ?? null) : null
+  if (carriesEnergy(prev, fork.scale)) return 'carried'
+  return CONTINUOUS_BAND.includes(fork.scale) ? 'day-begins' : 'reset'
+}
 
 interface MutableState {
   traits: TraitSheet

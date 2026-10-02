@@ -1,4 +1,5 @@
-import { TUNING } from '../engine'
+import { TUNING, type EnergyArrival } from '../engine'
+import { ENERGY_ARRIVAL } from './energy'
 
 interface Props {
   energy: number
@@ -9,6 +10,8 @@ interface Props {
    * shows until then.
    */
   spent: number
+  /** How her energy arrived at the fork in view. null past the last question. */
+  arrival: EnergyArrival | null
   /** Shown when the player is looking somewhere other than where she is. */
   onNow: (() => void) | null
 }
@@ -19,7 +22,7 @@ interface Props {
  * player arrived. Once the fork in view is answered, the bar shows what is left
  * after it, and the part she spent stays outlined so the cost is visible.
  */
-export const Hud = ({ energy, energyCap, spent, onNow }: Props): JSX.Element => {
+export const Hud = ({ energy, energyCap, spent, arrival, onNow }: Props): JSX.Element => {
   const ceiling = TUNING.absoluteEnergyCeiling
   const left = Math.max(0, energy - spent)
   const low = energyCap > 0 && left / energyCap < 0.25
@@ -48,6 +51,11 @@ export const Hud = ({ energy, energyCap, spent, onNow }: Props): JSX.Element => 
             {spent > 0 && <span className="meter-delta">&minus;{spent}</span>}
           </span>
         </div>
+        {arrival && (
+          <span className={`meter-note ea-${arrival}`}>
+            {ENERGY_ARRIVAL[arrival].mark} {ENERGY_ARRIVAL[arrival].short}
+          </span>
+        )}
       </div>
       {onNow && (
         <button className="now-btn" onClick={onNow}>

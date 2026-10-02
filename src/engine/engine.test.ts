@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { tenDigits } from '../content'
 import {
   appraiseFork,
+  energyArrival,
   computeEnergyCap,
   isPlayableScale,
   replayWithEdit,
@@ -183,5 +184,26 @@ describe('the experiment: change one cause, keep every button press', () => {
     expect(flippedSomething).toBeGreaterThan(0)
     // ...but sleeping one night does not reliably buy the phone call.
     expect(flippedTheAnchor).toBeLessThan(trials)
+  })
+})
+
+describe('energy between forks', () => {
+  it('resets at every fork before the final day and carries over within it', () => {
+    const band = ['days', 'hours', 'minutes', 'seconds']
+    const first = tenDigits.forks.findIndex((f) => band.includes(f.scale))
+    tenDigits.forks.forEach((_, i) => {
+      expect(energyArrival(tenDigits, i)).toBe(i < first ? 'reset' : i === first ? 'day-begins' : 'carried')
+    })
+  })
+
+  it('a reset fork starts full whatever the last one cost, and a carried one does not', () => {
+    for (let seed = 0; seed < 30; seed++) {
+      const run = simulate(tenDigits, seed, driftIntents(tenDigits.forks.length, seed))
+      for (const r of run.records) {
+        if (energyArrival(tenDigits, r.index) !== 'carried') {
+          expect(r.energyBefore).toBe(r.energyCapAtFork)
+        }
+      }
+    }
   })
 })

@@ -1,7 +1,9 @@
 import type { Ref } from 'react'
 import {
+  energyArrival,
   SCALE_LABELS,
   SCALE_NAMES,
+  type EnergyArrival,
   TRAIT_META,
   type Feasibility,
   type Fork,
@@ -10,6 +12,7 @@ import {
 } from '../engine'
 import type { Measure, NodeView, RowView } from './graph'
 import { MEASURES } from './graph'
+import { ENERGY_ARRIVAL } from './energy'
 import { pullShare, splitPulls, type ArmPull } from './pulls'
 
 interface Props {
@@ -58,10 +61,12 @@ const Carried = ({
   node,
   row,
   reference,
+  arrival,
 }: {
   node: NodeView
   row: RowView
   reference: NodeView | null
+  arrival: EnergyArrival
 }): JSX.Element => (
   <div className="carried">
     {MEASURES.map((m) => {
@@ -95,6 +100,9 @@ const Carried = ({
         </div>
       )
     })}
+    <p className={`energy-arrival ea-${arrival}`}>
+      <span className="ea-mark">{ENERGY_ARRIVAL[arrival].mark}</span> {ENERGY_ARRIVAL[arrival].line}
+    </p>
     {/* Two forks, one question, and she arrives at both carrying exactly the
         same things: the press behind them changed nothing. Said out loud,
         because silence here reads as a bug. */}
@@ -230,7 +238,12 @@ export const ForkCard = ({
       onClick={() => onFocus(node.key)}
     >
       {via}
-      <Carried node={node} row={row} reference={reference} />
+      <Carried
+        node={node}
+        row={row}
+        reference={reference}
+        arrival={energyArrival(path, node.depth)}
+      />
 
       {/* One column per answer: the button, then -- once pressed -- what came
           of it, straight underneath, so the two outcomes read side by side and

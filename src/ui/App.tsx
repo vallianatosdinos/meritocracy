@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { GAME, getPath } from '../content'
-import { SCALE_NAMES, simulate, type RunResult } from '../engine'
+import { energyArrival, SCALE_NAMES, simulate, type RunResult } from '../engine'
 import {
   activeHead,
   continuation,
@@ -160,6 +160,7 @@ export const App = (): JSX.Element => {
         energy={focus?.values.energy ?? 0}
         energyCap={focus?.energyCap ?? 0}
         spent={spentHere}
+        arrival={focus && !focus.isEnd ? energyArrival(PATH, focus.depth) : null}
         onNow={focusKey !== now ? () => go(now) : null}
       />
 

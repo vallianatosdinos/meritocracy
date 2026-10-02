@@ -260,10 +260,16 @@ Working shape, from the first path:
 | hours / minutes | 4 | the body on the day |
 | seconds | 1 | the anchor |
 
-The days/hours/minutes/seconds band shares one continuous energy budget. Coarser
-rungs each get their own — they are separate occasions, not one long afternoon.
-This is why last night's bedtime is still on the books at 23:41, and it is the
-mechanism behind "sometimes it's as simple as sleeping earlier".
+**Energy resets at every fork before the final day, and carries over within
+it.** Before the final day each fork is its own occasion — the two Childhood
+forks are four years apart — so she arrives at each with a full budget, however
+much the last one cost. The days/hours/minutes/seconds band shares one
+continuous budget instead. This is why last night's bedtime is still on the
+books at 23:41, and it is the mechanism behind "sometimes it's as simple as
+sleeping earlier".
+
+Because this is not guessable, every fork card says which it is, next to the
+energy measure: *energy reset*, *the last day begins*, or *energy carried over*.
 
 ### Session length (settled)
 
