@@ -182,7 +182,7 @@ Every name in this doc, alphabetically, with where it is explained.
 | Delta | A lit measure's difference from the active fork | Fork card |
 | Emptied out | Cost above her energy but within her ceiling | Numbers |
 | Ending card | Below the last question: what became of her | Tree |
-| Energy meter | The bar in the status bar; its hatched end is the ceiling | Screen |
+| Energy meter | The bar in the status bar; its hatched end is the ceiling. Once the fork in view is answered it shows what is left, with the spend beside the number ("1/40 −39") | Screen |
 | Focus | Tapping a card to look at it, without changing anything | Moving |
 | Fold line | "3 smaller things": the tiny causes, summed | Fork card |
 | Follow | Pressing a played answer on the active path: steps down | Moving |

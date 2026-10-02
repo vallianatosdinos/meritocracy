@@ -137,6 +137,12 @@ export const App = (): JSX.Element => {
   const next = nextKey ? model.nodes.get(nextKey) : undefined
   const now = activeHead(exploration)
 
+  // What she spent here, along the path being looked at: the answer that path
+  // took out of this fork.
+  const wentBy = head && focus && head.length > focus.depth ? head[focus.depth] : undefined
+  const spentHere =
+    wentBy !== undefined ? (focus?.arms?.[wentBy === '0' ? 0 : 1].record?.energySpent ?? 0) : 0
+
   const parentFork = parent ? PATH.forks[parent.depth] : undefined
   const nextFork = next ? PATH.forks[next.depth] : undefined
   const arrival = focus?.arrival
@@ -146,6 +152,7 @@ export const App = (): JSX.Element => {
       <Hud
         energy={focus?.values.energy ?? 0}
         energyCap={focus?.energyCap ?? 0}
+        spent={spentHere}
         onNow={focusKey !== now ? () => go(now) : null}
       />
 
