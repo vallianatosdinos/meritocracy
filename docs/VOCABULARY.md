@@ -8,9 +8,8 @@ Every visible thing in the game gets exactly one name here, so a piece of feedba
 
 - The pictures are drawn mock-ups of the live screen. Numbered markers point at its parts, and a key beside or under each picture names them.
 - The diagrams show things a single screenshot cannot: the shape of the whole tree, and what happens when you press.
-- Where today's words clash ("path" means two things right now), the clash is listed in the last section. Those are ours to decide.
 
-Everything here describes the build currently live (`0d039f4`).
+Everything here describes the build currently live (`99c55c7`).
 
 ## The big picture: the tree
 
@@ -20,13 +19,15 @@ The game is one **tree** per **life**: each **row** is one question, and each **
 
 A row grows only as far as you explore it: row 2 has two forks because both answers at the root have been pressed. Exactly one **path** is the **active path**; every other path you have played is a **side path**, and it keeps showing what happened on it. (The diagrams use the doc's own colours; in the game the active path is gold and side paths are blue.) A new **life** means a new roll, and a new, empty tree.
 
+The last row is the **anchor act**, the question the life exists for. Its forks wear a **double ring** and an "anchor act" label. Until you reach it, a dashed, double-ringed **anchor ghost** stands below the explored tree, showing the act and how many questions on it is, so you always see where the life is heading. It never says how hard the act will be.
+
 ## The play screen
 
 The screen is a scrolling window onto the tree, with a **status bar** at the top and two pinned **step bars**: the **previous bar** above the tree and the **next bar** below it.
 
 ![The play screen · 11 named parts](vocabulary/play-screen.png)
 
-The **question header** belongs to the row, not to a card: it is printed once and slides sideways to sit above whichever fork you are looking at. The **status bar** is the strip holding parts 1 to 3.
+The **scene header** belongs to the row, not to a card: it is printed once and slides sideways to sit above whichever fork you are looking at. The **status bar** is the strip holding parts 1 to 3.
 
 ## Anatomy of a fork card
 
@@ -45,7 +46,7 @@ A **fork card** reads top to bottom: how she got here, what she carries in, the 
 | 7 | **Outcome** | One per played answer: "you pressed …", then what happened |
 | 8 | **Confabulation** | Her own account of doing what you did not press |
 | 9 | **Narration** | What actually happened |
-| 10 | **Spend line** | What it cost her: free, a cost, emptied out, or never in reach |
+| 10 | **Spend line** | What it cost her: flowed, overrode, emptied out, or never in reach |
 | 11 | **Verdict line** | Opens the **receipt**: which answer she was always going to take |
 | 12 | **Pull share** | Each answer's share of the force of her history |
 | 13 | **Cost chip** | What going that way costs: free, a cost, more than she had, or no road here |
@@ -75,6 +76,7 @@ Colour always means the same thing: **gold** is the path you are on, **blue** is
 | Hatched right end of the energy bar | **Ceiling** | Energy she cannot reach here, because of sleep debt and stress |
 | Text in a red frame, in italics | **Confabulation** | Her own explanation for doing what you did not press |
 | Gold text with a gold rule on its left | **Aside** | The narrator talking to you |
+| Double ring and an "anchor act" label | **Anchor act** | The question the life exists for; dashed while it is still a ghost below the tree |
 
 ## Moving around
 
@@ -86,7 +88,7 @@ Going back costs one hindsight per row travelled up from where she stands now, a
 
 | Move | How | What it does |
 | --- | --- | --- |
-| **Focus** | Tap a fork card | Looks at that fork; the question header slides over to it |
+| **Focus** | Tap a fork card | Looks at that fork; the scene header slides over to it |
 | **Step up** | The previous bar | Looks at the fork one row above |
 | **Step down** | The next bar | Looks at the fork one row below, along the path you came by |
 | **Jump to now** | The Now button | Looks at the fork she is standing at |
@@ -101,10 +103,10 @@ Two screens come before the tree: the **title screen**, then the **roll**, which
 | Name | What it is |
 | --- | --- |
 | **Game title** | "Meritocracy" |
-| **Story label** | "Path one · Ten Digits" — which authored story you are about to play (see the last section: this clashes with *path*) |
-| **Anchor line** | "Nadia calls her father, or she does not." — the one act the story exists to explain |
+| **Life label** | "Life one · Ten Digits" — which authored life you are about to play |
+| **Anchor line** | "Nadia calls her father, or she does not." — the one act the life exists to explain |
 | **Roll for a life** | The button that starts a new life |
-| **Build stamp** | "build 0d039f4" — which version of the game is on screen |
+| **Build stamp** | "build 99c55c7" — which version of the game is on screen |
 | **Life number** | The number that fixes this life's roll; the same number gives the same birth |
 
 **Roll screen**
@@ -153,8 +155,8 @@ Every fork is decided by arithmetic on her history, and all of it is shown on th
 | **Resistance** | How hard history pushes against the other answer |
 | **Cost** | Energy needed to go against the tendency: resistance × 2.2 |
 | **Affordable** | Cost is within the energy she has now: she does it, and pays |
-| **Out of reach** | Cost is more than she has now but within her ceiling: she tries, empties out, and does the tendency |
-| **Impossible** | Cost is above her ceiling: "no road here" |
+| **Emptied out** | Cost is more than she has now but within her ceiling: she tries, empties out, and does the tendency |
+| **Never in reach** | Cost is above her ceiling: "no road here" |
 | **Cause** | One line of the receipt: a single fact about her past and how hard it pulls |
 | **Issued** | Marks the part of a trait she was born with, which no going back can reach |
 | **Confabulation** | She did the answer you did not press, and explains it to herself as her own choice |
@@ -170,7 +172,7 @@ Every name in this doc, alphabetically, with where it is explained.
 | --- | --- | --- |
 | Active / active path | The one path that is yours now, root to Now, drawn gold | Tree |
 | Affordable | She can pay the cost, so she does it | Numbers |
-| Anchor act | The last question, the one the story exists for | Before |
+| Anchor act | The last question, the one the life exists for; double-ringed in the tree from the start | Tree |
 | Answer, answer button | One of a fork's two options, and the button for it | Fork card |
 | Arrival line | "after 'X'" at the top of a fork card: how she got here | Fork card |
 | Aside | The narrator's gold comment to you after a fork | Fork card |
@@ -182,55 +184,45 @@ Every name in this doc, alphabetically, with where it is explained.
 | Confabulated, confabulation | She did the other answer; her excuse for it | Fork card |
 | Cost, cost chip | Energy needed to go against the tendency | Fork card |
 | Delta | A lit measure's difference from the active fork | Fork card |
+| Emptied out | Cost above her energy but within her ceiling | Numbers |
 | Ending card | Below the last question: what became of her | Tree |
 | Energy meter, hindsight meter | The two bars in the status bar | Screen |
 | Focus | Tapping a card to look at it, without changing anything | Moving |
 | Fold line | "3 smaller things": the tiny causes, summed | Fork card |
 | Follow | Pressing a played answer on the active path: steps down | Moving |
 | Fork, fork card | One version of a question, reached by one history | Tree |
-| Fork count | "2 forks" in the question header | Screen |
+| Fork count | "2 forks" in the scene header | Screen |
 | Go back, go-back line | Pressing an unplayed answer behind Now; costs hindsight | Moving |
-| Impossible | Cost above her ceiling: "no road here" | Numbers |
 | Issued | The part of a trait she was born with | Numbers |
 | Life | Everything from one roll; another life means a new roll | Tree |
+| Life (scenario) | The authored scenario, "Ten Digits"; in code, a single roll of it is a run, a word never shown on screen | Before |
 | Lit, quiet | A measure that differs between forks, or is the same | Fork card |
 | Narration | What actually happened, in a played answer's outcome | Fork card |
+| Never in reach | Cost above her ceiling: "no road here" | Numbers |
 | Next bar, previous bar | The pinned bars at the bottom and top: one step down or up | Screen |
 | Now, Now button | The fork she stands at; the button that jumps there | Tree |
 | Nudge | The tendency answer drawn 1.5% larger at Now | Numbers |
 | Open branch | The short dashed line under an unplayed answer | Tree |
 | Origin, origin result, quip, trait chips | The four parts of the roll and how each is shown | Before |
-| Out of reach | Cost above her energy but within her ceiling | Numbers |
 | Outcome | What happened for one played answer | Fork card |
 | Path | A chain of answers from the root to a fork | Tree |
 | Play | Pressing an answer at Now; free | Moving |
 | Played, unplayed | An answer somebody has pressed here, or not | States |
 | Pull, pull share | How hard history pushes toward an answer; as a % | Numbers |
-| Question, question header | What a row asks; shown once per row above the cards | Screen |
+| Question | What a row asks; a row holds every fork of one question | Screen |
 | Receipt, receipt column | Why she leaned the way she did, split by answer | Fork card |
 | Result line | What a played answer did, under its label | Fork card |
 | Root | The first fork, at the top of the tree | Tree |
 | Row | Every fork of one question, side by side | Tree |
 | Same-carry note | "she carries exactly the same…" when nothing is lit | Fork card |
-| Scene | The question's prose in the question header | Screen |
+| Scene header, scene text | Header above the cards, once per row: scene text, timestamp, fork count; the scene text is the question's prose | Screen |
 | Side path | A path you played and left, drawn blue | Tree |
-| Spend line | "free · the way she was going", "cost 41 of 45" | Fork card |
+| Spend line | The result: flowed, overrode, emptied out or never in reach ("free · the way she was going", "cost 41 of 45") | Fork card |
 | Status bar | The top strip: energy, hindsight, Now button | Screen |
 | Step up, step down | Using the previous or next bar | Moving |
-| Story | The authored scenario, "Ten Digits" (proposed name) | Words |
 | Switch | Pressing a played answer on a side path; it becomes active | Moving |
 | Tendency | The answer her history leans toward; always free | Numbers |
-| Timestamp | "She is seven. The hallway." in the question header | Screen |
+| Timestamp | "She is seven. The hallway." in the scene header | Screen |
 | Trait | One of eight 0–100 numbers describing her | Numbers |
 | Tree | The whole map of one life's forks, top to bottom | Tree |
 | Verdict line | "why · she was always going to …" over the receipt | Fork card |
-
-## Words we still need
-
-Five places where today's words clash or are missing. Each has a proposal; none is changed in the game yet.
-
-1. **"Path" means two things.** The title screen says "Path one · Ten Digits" for the authored story, while the tree uses *path* for a chain of answers. Proposal: call the authored scenario a **story**, and change the title screen to "Story one · Ten Digits".
-2. **"Life" versus "path".** The ending card's button says "Another life" and means a new roll. Earlier versions also called a side path "a life you stepped out of". Proposal: a **life** is one roll; everything inside it is **paths**.
-3. **The spend line has four wordings and no shared name for them.** "free · the way she was going", "she overrode it", "she tried and emptied out", "never in reach". Proposal: name the four results **flowed**, **overrode**, **emptied out** and **never in reach**. The code today has three (flowed, resisted, blocked), with one word covering both kinds of failure.
-4. **The anchor act is never named on screen.** The title screen states it, but the last question looks like any other. Open question: should the tree mark it?
-5. **The question header has no visible name.** It is the only place the scene is printed. Open question: is "question" the right word, given the scene is a situation rather than something asked?
