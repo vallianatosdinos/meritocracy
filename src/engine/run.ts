@@ -393,3 +393,19 @@ export const replayWithEdit = (
   )
   return { before, after, divergences: diffRuns(before, after) }
 }
+
+/**
+ * Whether two lives stand in exactly the same place: the same traits, the same
+ * resources and the same history of factors, at the same fork. Two such lives
+ * play out identically from here, whatever was pressed to reach them -- which
+ * is what lets the tree join a press that could not change her to the answer
+ * she did instead.
+ */
+export const sameState = (a: RunResult, b: RunResult): boolean =>
+  a.cursor === b.cursor &&
+  TRAITS.every((t) => a.traits[t].value === b.traits[t].value) &&
+  (Object.keys(a.resources) as (keyof Resources)[]).every(
+    (k) => a.resources[k] === b.resources[k],
+  ) &&
+  a.factors.length === b.factors.length &&
+  a.factors.every((f, i) => f.id === b.factors[i]?.id)

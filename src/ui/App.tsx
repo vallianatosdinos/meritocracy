@@ -9,7 +9,7 @@ import {
   type Exploration,
 } from './explore'
 import { Graph, type ScrollRequest } from './Graph'
-import { buildGraph } from './graph'
+import { buildGraph, canonOf } from './graph'
 import { Hud } from './Hud'
 import { RollItem } from './Roll'
 
@@ -28,6 +28,7 @@ export const App = (): JSX.Element => {
   const [scrollReq, setScrollReq] = useState<ScrollRequest>({ key: '', mode: 'focus', nonce: 0 })
 
   const cache = useMemo(() => new Map<string, RunResult>(), [seed])
+  const canon = useMemo(() => canonOf(PATH, seed, cache), [seed, cache])
   const model = useMemo(
     () => buildGraph(PATH, seed, exploration, cache),
     [seed, exploration, cache],
@@ -62,7 +63,7 @@ export const App = (): JSX.Element => {
       go(a.childKey)
       return
     }
-    setExploration(press(exploration, nodeKey, arm).next)
+    setExploration(press(exploration, nodeKey, arm, canon).next)
     go(nodeKey, 'reveal')
   }
 
@@ -137,11 +138,17 @@ export const App = (): JSX.Element => {
   const next = nextKey ? model.nodes.get(nextKey) : undefined
   const now = activeHead(exploration)
 
-  // What she spent here, along the path being looked at: the answer that path
-  // took out of this fork.
-  const wentBy = head && focus && head.length > focus.depth ? head[focus.depth] : undefined
-  const spentHere =
-    wentBy !== undefined ? (focus?.arms?.[wentBy === '0' ? 0 : 1].record?.energySpent ?? 0) : 0
+  // What she spent here, along the path being looked at: the answer pressed
+  // most recently among those leading that way (two can, when joined).
+  const leading = (focus?.arms ?? []).filter(
+    (a) => a.played && head !== null && head.startsWith(a.childKey) && head.length > (focus?.depth ?? 0),
+  )
+  const latest = leading.sort(
+    (a, b) =>
+      exploration.presses.indexOf((focus?.key ?? '') + a.arm) -
+      exploration.presses.indexOf((focus?.key ?? '') + b.arm),
+  )[leading.length - 1]
+  const spentHere = latest?.record?.energySpent ?? 0
 
   const parentFork = parent ? PATH.forks[parent.depth] : undefined
   const nextFork = next ? PATH.forks[next.depth] : undefined

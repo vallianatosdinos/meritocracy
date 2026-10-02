@@ -1,5 +1,6 @@
 import {
   peek,
+  sameState,
   simulate,
   TRAITS,
   type ForkAppraisal,
@@ -9,13 +10,19 @@ import {
   type RunResult,
   type TraitId,
 } from '../engine'
-import { activeHead, exploredKeys, type Exploration } from './explore'
+import { activeHead, exploredKeys, type Canon, type Exploration } from './explore'
 
 export interface ArmView {
   arm: 0 | 1
+  /** The fork this answer leads to. */
   childKey: string
   /** Somebody has pressed this answer here. */
   played: boolean
+  /**
+   * The press changed nothing about her: she did the other answer and arrived
+   * exactly where that one leads, so this branch joins it.
+   */
+  joined: boolean
   /** What happened when they did. The child's record at this depth. */
   record: ForkRecord | null
   /** The active life went this way. */
@@ -68,6 +75,38 @@ export interface GraphModel {
 const intentsOf = (key: string): Intent[] =>
   [...key].map((c) => ({ optionIndex: c === '0' ? 0 : 1 }) as Intent)
 
+const runner =
+  (path: LifePath, seed: number, cache: Map<string, RunResult>) =>
+  (key: string): RunResult => {
+    const hit = cache.get(key)
+    if (hit) return hit
+    const run = simulate(path, seed, intentsOf(key))
+    cache.set(key, run)
+    return run
+  }
+
+/**
+ * Where an answer leads. Usually its own branch; but when both answers end in
+ * the same act and leave her in exactly the same state, the two are one node,
+ * named by what she did. Only ever asked about an answer once it is pressed:
+ * asking earlier would let the tree's shape reveal a fork's difficulty.
+ */
+export const canonOf = (path: LifePath, seed: number, cache: Map<string, RunResult>): Canon => {
+  const runOf = runner(path, seed, cache)
+  return (nodeKey, arm) => {
+    const depth = nodeKey.length
+    if (depth >= path.forks.length) return nodeKey + arm
+    const a = runOf(nodeKey + '0')
+    const b = runOf(nodeKey + '1')
+    const ra = a.records[depth]
+    const rb = b.records[depth]
+    if (ra && rb && ra.resolvedIndex === rb.resolvedIndex && sameState(a, b)) {
+      return nodeKey + ra.resolvedIndex
+    }
+    return nodeKey + arm
+  }
+}
+
 export const MEASURES: Measure[] = [...TRAITS, 'energy']
 
 /**
@@ -83,13 +122,9 @@ export const buildGraph = (
   e: Exploration,
   cache: Map<string, RunResult>,
 ): GraphModel => {
-  const runOf = (key: string): RunResult => {
-    const hit = cache.get(key)
-    if (hit) return hit
-    const run = simulate(path, seed, intentsOf(key))
-    cache.set(key, run)
-    return run
-  }
+  const runOf = runner(path, seed, cache)
+  const canon = canonOf(path, seed, cache)
+  const pressed = new Set(e.presses)
 
   const last = path.forks.length
   const active = activeHead(e)
@@ -106,14 +141,15 @@ export const buildGraph = (
     const arms = isEnd
       ? null
       : (([0, 1] as const).map((arm) => {
-          const childKey = key + arm
-          const played = explored.has(childKey)
+          const played = pressed.has(key + arm)
+          const childKey = played ? canon(key, arm) : key + arm
           return {
             arm,
             childKey,
             played,
-            record: played ? (runOf(childKey).records[depth] ?? null) : null,
-            onActivePath: active.startsWith(childKey),
+            joined: played && childKey !== key + arm,
+            record: played ? (runOf(key + arm).records[depth] ?? null) : null,
+            onActivePath: played && explored.has(childKey) && active.startsWith(childKey),
           }
         }) as [ArmView, ArmView])
 
@@ -145,12 +181,15 @@ export const buildGraph = (
   const place = (key: string): number => {
     const n = nodes.get(key)
     if (!n) return next
-    const kids = (n.arms ?? []).filter((a) => a.played && nodes.has(a.childKey))
+    // Two joined answers share one child: place it once.
+    const kids = [
+      ...new Set((n.arms ?? []).filter((a) => a.played && nodes.has(a.childKey)).map((a) => a.childKey)),
+    ]
     if (kids.length === 0) {
       n.slot = next++
       return n.slot
     }
-    const xs = kids.map((a) => place(a.childKey))
+    const xs = kids.map((k) => place(k))
     n.slot = (Math.min(...xs) + Math.max(...xs)) / 2
     return n.slot
   }

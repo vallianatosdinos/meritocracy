@@ -8,13 +8,34 @@
  *
  * There is exactly one active life at a time: the most recent head. Its path
  * from the root to "now" is the active path.
+ *
+ * What was pressed is kept apart from where it led. A press that could not
+ * change anything about her -- an answer never in reach, so she did the other
+ * one and arrived exactly as if that had been pressed -- leads to the same node
+ * as the other answer. The press is still remembered and shown; the tree just
+ * does not pretend it opened a second life.
  */
 export interface Exploration {
   /** Heads of every life lived, least recent first. The last is the active one. */
   heads: string[]
+  /** Every answer pressed, as node key + arm, least recent first. */
+  presses: string[]
 }
 
-export const initialExploration = (): Exploration => ({ heads: [''] })
+export const initialExploration = (): Exploration => ({ heads: [''], presses: [] })
+
+/** Where pressing an answer leads: the node key of the fork it arrives at. */
+export type Canon = (nodeKey: string, arm: 0 | 1) => string
+
+/** Without a canon, every press opens its own branch. */
+export const literal: Canon = (nodeKey, arm) => nodeKey + arm
+
+/** An exploration reached by pressing straight down to each of these heads. */
+export const fromHeads = (heads: string[]): Exploration => {
+  const presses = new Set<string>()
+  for (const h of heads) for (let l = 1; l <= h.length; l++) presses.add(h.slice(0, l))
+  return { heads, presses: [...presses] }
+}
 
 export const activeHead = (e: Exploration): string => e.heads[e.heads.length - 1] ?? ''
 
@@ -51,26 +72,32 @@ export type PressResult =
  *
  * Three cases, and none of them costs anything. Going back is free on purpose:
  * the game wants the player comparing paths, not rationing them.
+ *  - where it leads was reached before: the player steps into that life (and
+ *    a life standing here moves on into it);
  *  - the node is where some life is standing: that life answers and moves on;
- *  - the answer was pressed before: the player steps into that life;
- *  - the answer was never pressed, somewhere behind a life: going back in
- *    time, and a new path starts there.
+ *  - otherwise, somewhere behind a life: going back in time, and a new path
+ *    starts there.
  */
-export const press = (e: Exploration, nodeKey: string, arm: 0 | 1): PressResult => {
-  const child = nodeKey + arm
-
-  const at = e.heads.indexOf(nodeKey)
-  if (at >= 0) {
-    return {
-      kind: 'played',
-      next: { heads: [...e.heads.filter((_, i) => i !== at), child] },
-    }
-  }
+export const press = (
+  e: Exploration,
+  nodeKey: string,
+  arm: 0 | 1,
+  canon: Canon = literal,
+): PressResult => {
+  const child = canon(nodeKey, arm)
+  const pressed = nodeKey + arm
+  const presses = [...e.presses.filter((p) => p !== pressed), pressed]
+  const others = e.heads.filter((h) => h !== nodeKey)
 
   if (exploredKeys(e).has(child)) {
     const target = continuation(e, child) ?? child
-    return { kind: 'switched', next: { heads: [...e.heads.filter((h) => h !== target), target] } }
+    const wasHead = e.heads.includes(nodeKey)
+    return {
+      kind: wasHead ? 'played' : 'switched',
+      next: { heads: [...others.filter((h) => h !== target), target], presses },
+    }
   }
 
-  return { kind: 'played', next: { heads: [...e.heads, child] } }
+  const heads = e.heads.includes(nodeKey) ? others : e.heads
+  return { kind: 'played', next: { heads: [...heads, child], presses } }
 }

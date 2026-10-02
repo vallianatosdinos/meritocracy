@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { tenDigits as path } from '../content'
 import type { RunResult } from '../engine'
-import { activeHead, continuation, exploredKeys, initialExploration, press } from './explore'
-import { buildGraph } from './graph'
+import {
+  activeHead,
+  continuation,
+  exploredKeys,
+  fromHeads,
+  initialExploration,
+  press,
+} from './explore'
+import { buildGraph, canonOf } from './graph'
 
 describe('pressing answers', () => {
   it('answering where a life stands moves that life on, for free', () => {
@@ -52,7 +59,7 @@ describe('pressing answers', () => {
   })
 
   it('there is exactly one active path, and continuation follows it', () => {
-    const e = { heads: ['110', '0111'] }
+    const e = fromHeads(['110', '0111'])
     expect(activeHead(e)).toBe('0111')
     expect(continuation(e, '')).toBe('0111')
     expect(continuation(e, '1')).toBe('110')
@@ -61,12 +68,59 @@ describe('pressing answers', () => {
   })
 })
 
+describe('joined branches', () => {
+  // A root whose non-tendency answer is never in reach: pressing it changes
+  // nothing about her, so it must lead where the tendency leads.
+  const blockedRoot = (): { seed: number; tendency: 0 | 1 } => {
+    for (let seed = 0; seed < 200; seed++) {
+      const g = buildGraph(path, seed, initialExploration(), new Map())
+      const a = g.nodes.get('')?.appraisal
+      if (!a) continue
+      const other = a.tendencyIndex === 0 ? 1 : 0
+      if (a.options[other].feasibility === 'never-in-reach') return { seed, tendency: a.tendencyIndex }
+    }
+    throw new Error('no birth with a blocked first fork')
+  }
+
+  it('a press that changes nothing joins the answer she did instead', () => {
+    const { seed, tendency } = blockedRoot()
+    const blocked = tendency === 0 ? 1 : 0
+    const cache = new Map<string, RunResult>()
+    const canon = canonOf(path, seed, cache)
+    let e = press(initialExploration(), '', blocked, canon).next
+    expect(activeHead(e)).toBe(String(tendency))
+    e = press(e, '', tendency, canon).next
+    // one life, not two, and both presses remembered
+    expect(e.heads).toEqual([String(tendency)])
+    expect(e.presses).toEqual([String(blocked), String(tendency)])
+    const g = buildGraph(path, seed, e, cache)
+    const arms = g.nodes.get('')?.arms
+    expect(arms?.[blocked].played && arms?.[blocked].joined).toBe(true)
+    expect(arms?.[blocked].record?.confabulated).toBe(true)
+    expect(arms?.[tendency].joined).toBe(false)
+    expect(g.rows.find((r) => r.depth === 1)?.keys).toEqual([String(tendency)])
+  })
+
+  it('an answer she actually managed keeps its own branch', () => {
+    for (let seed = 0; seed < 200; seed++) {
+      const cache = new Map<string, RunResult>()
+      const a = buildGraph(path, seed, initialExploration(), cache).nodes.get('')?.appraisal
+      if (!a) continue
+      const other = a.tendencyIndex === 0 ? 1 : 0
+      if (a.options[other].feasibility !== 'affordable') continue
+      expect(canonOf(path, seed, cache)('', other)).toBe(String(other))
+      return
+    }
+    throw new Error('no birth with an affordable first fork')
+  })
+})
+
 describe('the graph', () => {
   it('lights what differs between forks exactly when the press changed what happened', () => {
     let lit = 0
     let same = 0
     for (let seed = 0; seed < 40; seed++) {
-      const g = buildGraph(path, seed, { heads: ['0', '1'] }, new Map<string, RunResult>())
+      const g = buildGraph(path, seed, fromHeads(['0', '1']), new Map<string, RunResult>())
       const row = g.rows.find((r) => r.depth === 1)
       expect(row?.keys).toHaveLength(2)
       const a = g.nodes.get('0')?.arrival
@@ -86,7 +140,7 @@ describe('the graph', () => {
   })
 
   it('prints each question once per row however many forks the row holds', () => {
-    const g = buildGraph(path, 3, { heads: ['00', '01', '10', '11'] }, new Map())
+    const g = buildGraph(path, 3, fromHeads(['00', '01', '10', '11']), new Map())
     expect(g.rows.map((r) => r.keys.length)).toEqual([1, 2, 4])
   })
 })

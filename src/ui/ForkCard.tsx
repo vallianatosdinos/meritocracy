@@ -3,6 +3,7 @@ import {
   SCALE_LABELS,
   SCALE_NAMES,
   TRAIT_META,
+  type Feasibility,
   type Fork,
   type ForkRecord,
   type LifePath,
@@ -148,6 +149,21 @@ const spentLine = (r: ForkRecord): string => {
   }
 }
 
+/**
+ * The verdict line. "Always going to" is only true when the other answer was
+ * never in reach; where it was, she leaned, and the line says so.
+ */
+const verdict = (tendency: string, other: Feasibility): string => {
+  switch (other) {
+    case 'never-in-reach':
+      return `why · she was always going to “${tendency}”`
+    case 'empties-out':
+      return `why · she leaned toward “${tendency}”, and had too little left for the other`
+    case 'affordable':
+      return `why · she leaned toward “${tendency}”; the other was within reach`
+  }
+}
+
 export const ForkCard = ({
   path,
   fork,
@@ -266,6 +282,12 @@ export const ForkCard = ({
                   )}
                   <p className="narration">{r.narration}</p>
                   <p className="spent">{spentLine(r)}</p>
+                  {a.joined && (
+                    <p className="joined">
+                      nothing in her changed &middot; this branch joins &ldquo;
+                      {fork.options[r.resolvedIndex].label}&rdquo;
+                    </p>
+                  )}
                   {opt.aside && <p className="aside">{opt.aside}</p>}
                 </div>
               )}
@@ -279,9 +301,7 @@ export const ForkCard = ({
           question has been answered. Before that it would be the answer key. */}
       {node.anyPlayed && (
         <div className="receipt">
-          <h4>
-            why &middot; she was always going to &ldquo;{tendency.label}&rdquo;
-          </h4>
+          <h4>{verdict(tendency.label, appraisal.options[appraisal.tendencyIndex === 0 ? 1 : 0].feasibility)}</h4>
           <div className="r-cols">
             {([0, 1] as const).map((arm) => {
               const o = appraisal.options[arm]

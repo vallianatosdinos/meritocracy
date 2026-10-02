@@ -169,6 +169,18 @@ anything.** An earlier version charged a hindsight budget for going back; it was
 removed because the game wants the player comparing paths, and a budget made
 exploring feel like spending.
 
+**A press and its effect are kept apart.** When the answer pressed was never in
+reach, she does the other one and arrives exactly as if that had been pressed.
+The tree does not open a second branch for it: the two answers' branches join
+into one fork. The press is still shown -- its outcome, the confabulation, and a
+line saying nothing in her changed. Whether two presses join is only worked out
+once they have been pressed, so the tree's shape never gives away a fork's
+difficulty in advance.
+
+**The verdict line says only what is true.** "She was always going to" is kept
+for forks where the other answer was never in reach. Where it was in reach, the
+line says she leaned.
+
 **The receipt belongs to the question.** It is the same whichever answer was
 pressed, so it is printed once per fork, split into what pulls toward each
 answer — same numbers, same sum — and only once the fork has been answered.
