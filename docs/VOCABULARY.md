@@ -9,7 +9,7 @@ Every visible thing in the game gets exactly one name here, so a piece of feedba
 - The pictures are drawn mock-ups of the live screen. Numbered markers point at its parts, and a key beside or under each picture names them.
 - The diagrams show things a single screenshot cannot: the shape of the whole tree, and what happens when you press.
 
-Everything here describes the build currently live (`a322144`).
+Everything here describes the build currently live (`6909462`).
 
 ## The big picture: the tree
 
@@ -57,6 +57,8 @@ A **fork card** reads top to bottom: how she got here, what she carries in, the 
 | 16 | **Aside** | The narrator, to you |
 
 This card is a **side** fork, which is why its measures carry deltas against the active fork. The numbers are illustrative.
+
+Under the carry panel sits the **energy line**, which says how her energy arrived at this fork (the drawing above predates it). Before the final day every fork is its own occasion, so it reads "↻ energy reset · a new occasion, she starts this fork full". At the final day's first fork it reads "↻ energy reset · the last day begins", and after that, in gold, "→ energy carried over · same day, what she spent earlier is still spent". The **energy note** under the energy meter repeats it in short.
 
 ## States and colours
 
@@ -108,7 +110,7 @@ Two screens come before the tree: the **title screen**, then the **roll**, which
 | **Life label** | "Life one · Ten Digits" — which authored life you are about to play |
 | **Anchor line** | "Nadia calls her father, or she does not." — the one act the life exists to explain |
 | **Roll for a life** | The button that starts a new life |
-| **Build stamp** | "build a322144" — which version of the game is on screen |
+| **Build stamp** | "build 6909462" — which version of the game is on screen |
 | **Life number** | The number that fixes this life's roll; the same number gives the same birth |
 
 **Roll screen**
@@ -141,7 +143,7 @@ Every fork is decided by arithmetic on her history, and all of it is shown on th
 | Empathy reach | How far out the circle of people who count extends | better |
 | Belonging | Whether anyone's opinion of her survives the night | better |
 | Conscientiousness | The habit of finishing things | better |
-| **Energy** | What she can spend at this fork to go against her tendency | better |
+| **Energy** | What she can spend at this fork to go against her tendency. Full again at every fork before the final day; carried over within it | better |
 | **Ceiling** | The most energy she can have here; sleep debt and stress push it down | better |
 
 **How a fork is decided**
@@ -186,6 +188,7 @@ Every name in this doc, alphabetically, with where it is explained.
 | Emptied out | Cost above her energy but within her ceiling | Numbers |
 | Ending card | Below the last question: what became of her | Tree |
 | Energy meter | The bar in the status bar; its hatched end is the ceiling. Once the fork in view is answered it shows what is left, with the spend beside the number ("1/40 −39") | Screen |
+| Energy line, energy note | "↻ energy reset" or "→ energy carried over": how her energy arrived at this fork; on the card and, in short, under the meter | Fork card |
 | Focus | Tapping a card to look at it, without changing anything | Moving |
 | Fold line | "3 smaller things": the tiny causes, summed | Fork card |
 | Follow | Pressing a played answer on the active path: steps down | Moving |
