@@ -48,6 +48,7 @@ npm run validate     # simulate 4,000 lives per strategy and check the design ba
 |---|---|
 | [GETTING-STARTED.md](docs/GETTING-STARTED.md) | publishing, testing on a phone, and how to run a playtest — no local setup required |
 | [DESIGN.md](docs/DESIGN.md) | pillars, the two layers, how the choice/no-choice friction is resolved, tone, open questions |
+| [VOCABULARY.md](docs/VOCABULARY.md) | a name for every element on screen, with labelled diagrams — the words to use in feedback |
 | [DATA-MODEL.md](docs/DATA-MODEL.md) | the schema and the authoring rules |
 | [KEY-QUESTION.md](docs/KEY-QUESTION.md) | how to generate life paths that are meaningful, and how to prove one is |
 | [ROADMAP.md](docs/ROADMAP.md) | what is next, what is deliberately missing, platform plan |

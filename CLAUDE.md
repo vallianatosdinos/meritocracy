@@ -18,6 +18,12 @@
   bookkeeping lives here on purpose -- a life is already a pure function of
   (path, seed, intents), so remembering a parallel one needs no engine change.
 
+## Shared vocabulary
+
+Use the names in `docs/VOCABULARY.md` (fork, row, carry panel, receipt, cause,
+spend line, ...) when talking about the screen, and update that file and its
+Claude Doc source when a UI change adds, removes or renames an element.
+
 ## Before pushing
 
 `npm run typecheck && npm test && npm run validate && npx vite build`.
