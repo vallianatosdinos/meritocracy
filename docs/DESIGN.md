@@ -161,7 +161,7 @@ has pushed them.
 |---|---|
 | **gold** | the life she is in |
 | **blue** | a life stepped out of, still showing what happened |
-| **dashed** | an answer nobody has pressed |
+| **dashed** | an answer nobody has pressed (it draws no branch until pressed) |
 
 Pressing an unpressed answer somewhere behind a life is going back in time.
 Pressing an answer somebody already pressed moves into that life. **Neither costs

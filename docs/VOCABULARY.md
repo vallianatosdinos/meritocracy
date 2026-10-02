@@ -9,7 +9,7 @@ Every visible thing in the game gets exactly one name here, so a piece of feedba
 - The pictures are drawn mock-ups of the live screen. Numbered markers point at its parts, and a key beside or under each picture names them.
 - The diagrams show things a single screenshot cannot: the shape of the whole tree, and what happens when you press.
 
-Everything here describes the build currently live (`6909462`).
+Everything here describes the build currently live (`2998323`).
 
 ## The big picture: the tree
 
@@ -25,11 +25,11 @@ What you press and what it does to her are kept apart. When the answer you press
 
 ## The play screen
 
-The screen is a scrolling window onto the tree, with a **status bar** at the top and two pinned **step bars**: the **previous bar** above the tree and the **next bar** below it.
+The screen is a scrolling window onto the tree between two pinned **step bars**: the **previous bar** above the tree and the **next bar** below it. There is no header: energy lives on each fork card. While you are looking anywhere other than where she stands, the **Now button** floats at the bottom right.
 
-![The play screen · 10 named parts](vocabulary/play-screen.png)
+![The play screen · 8 named parts](vocabulary/play-screen.png)
 
-The **scene header** belongs to the row, not to a card: it is printed once and slides sideways to sit above whichever fork you are looking at. The **status bar** is the strip holding parts 1 and 2.
+The **scene header** belongs to the row, not to a card: it is printed once and slides sideways to sit above whichever fork you are looking at.
 
 ## Anatomy of a fork card
 
@@ -58,7 +58,7 @@ A **fork card** reads top to bottom: how she got here, what she carries in, the 
 
 This card is a **side** fork, which is why its measures carry deltas against the active fork. The numbers are illustrative.
 
-Under the carry panel sits the **energy line**, which says how her energy arrived at this fork (the drawing above predates it). Before the final day every fork is its own occasion, so it reads "↻ energy reset · a new occasion, she starts this fork full". At the final day's first fork it reads "↻ energy reset · the last day begins", and after that, in gold, "→ energy carried over · same day, what she spent earlier is still spent". The **energy note** under the energy meter repeats it in short.
+Under the carry panel sits the **energy line**, which says how her energy arrived at this fork (the drawing above predates it). Before the final day every fork is its own occasion, so it reads "↻ energy reset · a new occasion, she starts this fork full". At the final day's first fork it reads "↻ energy reset · the last day begins", and after that, in gold, "→ energy carried over · same day, what she spent earlier is still spent".
 
 ## States and colours
 
@@ -71,12 +71,11 @@ Colour always means the same thing: **gold** is the path you are on, **blue** is
 | Card with a faint glow | **Now** | The fork she is standing at, waiting for your answer |
 | Dashed answer button | **Unplayed** | Nobody has pressed this answer at this fork yet |
 | Solid answer button | **Played** | Somebody pressed it; its outcome is shown on the card |
-| Short dashed line under a card | **Open branch** | Where an unplayed answer would lead |
 | Red-bordered answer, red result line | **Confabulated** | You pressed it, and she did the other answer instead |
 | Bright measure in the carry panel | **Lit** | It differs between the forks in this row |
 | Faded measure in the carry panel | **Quiet** | It is the same in every fork of this row |
 | Green or red number beside a measure | **Delta** | Its difference from the active fork; green is better for her, red worse |
-| Hatched right end of the energy bar | **Ceiling** | Energy she cannot reach here, because of sleep debt and stress |
+| Hatched right end of the energy bar in the carry panel | **Ceiling** | Energy she cannot reach here, because of sleep debt and stress |
 | Text in a red frame, in italics | **Confabulation** | Her own explanation for doing what you did not press |
 | Gold text with a gold rule on its left | **Aside** | The narrator talking to you |
 | Two branches meeting at one fork | **Joined** | The press could not change her: she did the other answer and ended up in the same place |
@@ -110,7 +109,7 @@ Two screens come before the tree: the **title screen**, then the **roll**, which
 | **Life label** | "Life one · Ten Digits" — which authored life you are about to play |
 | **Anchor line** | "Nadia calls her father, or she does not." — the one act the life exists to explain |
 | **Roll for a life** | The button that starts a new life |
-| **Build stamp** | "build 6909462" — which version of the game is on screen |
+| **Build stamp** | "build 2998323" — which version of the game is on screen |
 | **Life number** | The number that fixes this life's roll; the same number gives the same birth |
 
 **Roll screen**
@@ -187,8 +186,7 @@ Every name in this doc, alphabetically, with where it is explained.
 | Delta | A lit measure's difference from the active fork | Fork card |
 | Emptied out | Cost above her energy but within her ceiling | Numbers |
 | Ending card | Below the last question: what became of her | Tree |
-| Energy meter | The bar in the status bar; its hatched end is the ceiling. Once the fork in view is answered it shows what is left, with the spend beside the number ("1/40 −39") | Screen |
-| Energy line, energy note | "↻ energy reset" or "→ energy carried over": how her energy arrived at this fork; on the card and, in short, under the meter | Fork card |
+| Energy line | "↻ energy reset" or "→ energy carried over" under the carry panel: how her energy arrived at this fork | Fork card |
 | Focus | Tapping a card to look at it, without changing anything | Moving |
 | Fold line | "3 smaller things": the tiny causes, summed | Fork card |
 | Follow | Pressing a played answer on the active path: steps down | Moving |
@@ -203,9 +201,8 @@ Every name in this doc, alphabetically, with where it is explained.
 | Narration | What actually happened, in a played answer's outcome | Fork card |
 | Never in reach | Cost above her ceiling: "no road here" | Numbers |
 | Next bar, previous bar | The pinned bars at the bottom and top: one step down or up | Screen |
-| Now, Now button | The fork she stands at; the button that jumps there | Tree |
+| Now, Now button | The fork she stands at; the button floating bottom right that jumps there | Tree |
 | Nudge | The tendency answer drawn 1.5% larger at Now | Numbers |
-| Open branch | The short dashed line under an unplayed answer | Tree |
 | Origin, origin result, quip, trait chips | The four parts of the roll and how each is shown | Before |
 | Outcome | What happened for one played answer | Fork card |
 | Path | A chain of answers from the root to a fork | Tree |
@@ -221,7 +218,6 @@ Every name in this doc, alphabetically, with where it is explained.
 | Scene header, scene text | Header above the cards, once per row: scene text, timestamp, fork count; the scene text is the question's prose | Screen |
 | Side path | A path you played and left, drawn blue | Tree |
 | Spend line | The result: flowed, overrode, emptied out or never in reach ("free · the way she was going", "cost 41 of 45") | Fork card |
-| Status bar | The top strip: the energy meter and the Now button | Screen |
 | Step up, step down | Using the previous or next bar | Moving |
 | Switch | Pressing a played answer on a side path; it becomes active | Moving |
 | Tendency | The answer her history leans toward; always free | Numbers |
