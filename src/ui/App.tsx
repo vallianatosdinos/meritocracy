@@ -84,7 +84,7 @@ export const App = (): JSX.Element => {
         <div className="stack">
           <p className="scale-tag">{GAME.tagline}</p>
           <h1>{GAME.title}</h1>
-          <p className="scale-tag">Path one &middot; {PATH.title}</p>
+          <p className="scale-tag">Life one &middot; {PATH.title}</p>
           <p className="sub">{PATH.anchorAct}</p>
           <p className="sub">
             You are not {PATH.character.name}. You are the thing that thinks it is

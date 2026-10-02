@@ -231,8 +231,8 @@ const report = (path: LifePath): boolean => {
   }
 
   console.log(`\n[feasibility of the hard path at the anchor]  strategy=willful`)
-  for (const f of ['affordable', 'out-of-reach', 'impossible']) {
-    console.log(`  ${f.padEnd(13)} ${pct(rate(willful, (s) => s.anchorFeasibility === f))}`)
+  for (const f of ['affordable', 'empties-out', 'never-in-reach']) {
+    console.log(`  ${f.padEnd(15)} ${pct(rate(willful, (s) => s.anchorFeasibility === f))}`)
   }
   const avg = (xs: number[]): number => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length)
   console.log(

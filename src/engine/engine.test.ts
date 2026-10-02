@@ -149,7 +149,7 @@ describe('confabulation', () => {
         tenDigits.forks.map(() => ({ optionIndex: 0 as const })),
       )
       for (const r of run.records) {
-        if (r.outcome === 'blocked' && r.appraisal.options[0].feasibility === 'impossible') {
+        if (r.outcome === 'never-in-reach' && r.appraisal.options[0].feasibility === 'never-in-reach') {
           expect(r.energySpent).toBe(0)
         }
       }
@@ -165,7 +165,7 @@ describe('choreography seam', () => {
     const at = (r: typeof perfect) => r.records[anchorIndex]
 
     if (at(perfect)?.appraisal.options[0].feasibility === 'affordable') {
-      expect(at(perfect)?.outcome).toBe('resisted')
+      expect(at(perfect)?.outcome).toBe('overrode')
       expect(at(fumbled)?.outcome).toBe('failed')
     }
   })

@@ -213,9 +213,9 @@ export type Feasibility =
   /** Cost fits inside current energy. */
   | 'affordable'
   /** Would fit the cap, but not what she has left right now. Rewind bait. */
-  | 'out-of-reach'
+  | 'empties-out'
   /** Exceeds the cap this life can ever hold. The wall. */
-  | 'impossible'
+  | 'never-in-reach'
 
 export interface OptionAppraisal {
   optionIndex: 0 | 1

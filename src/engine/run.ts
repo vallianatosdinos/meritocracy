@@ -38,14 +38,16 @@ export type ForkOutcome =
   /** Went with the tendency. Free, instant, frictionless. The "whatever". */
   | 'flowed'
   /** Went against it and made it. Paid for. */
-  | 'resisted'
+  | 'overrode'
   /**
    * Went against it, paid, and failed anyway. Only reachable through the
    * choreography seam now -- without a performance there is no failure roll.
    */
   | 'failed'
-  /** Never in reach. She did not even get close. */
-  | 'blocked'
+  /** Tried, spent everything she had, and did the tendency anyway. */
+  | 'emptied-out'
+  /** Never in reach. Above her ceiling, so she did not even get close. */
+  | 'never-in-reach'
 
 export interface ForkRecord {
   index: number
@@ -227,15 +229,15 @@ const resolveFork = (
     return { resolvedIndex: intent.optionIndex, outcome: 'flowed', energySpent: 0 }
   }
 
-  if (wanted.feasibility === 'impossible') {
-    return { resolvedIndex: appraisal.tendencyIndex, outcome: 'blocked', energySpent: 0 }
+  if (wanted.feasibility === 'never-in-reach') {
+    return { resolvedIndex: appraisal.tendencyIndex, outcome: 'never-in-reach', energySpent: 0 }
   }
 
-  if (wanted.feasibility === 'out-of-reach') {
+  if (wanted.feasibility === 'empties-out') {
     // She tries. She empties out. It is not enough, and it was never going to be.
     return {
       resolvedIndex: appraisal.tendencyIndex,
-      outcome: 'blocked',
+      outcome: 'emptied-out',
       energySpent: resources.energy,
     }
   }
@@ -245,7 +247,7 @@ const resolveFork = (
 
   return {
     resolvedIndex: succeeded ? intent.optionIndex : appraisal.tendencyIndex,
-    outcome: succeeded ? 'resisted' : 'failed',
+    outcome: succeeded ? 'overrode' : 'failed',
     energySpent: wanted.energyCost,
   }
 }

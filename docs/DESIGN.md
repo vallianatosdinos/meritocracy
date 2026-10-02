@@ -52,7 +52,7 @@ From your notebook, and each one is now a mechanical state, not a mood:
 |---|---|
 | **flow** | Pressing the tendency. Free, instant, no roll. |
 | **yeah, whatever** | Most forks lean gently. You barely notice you agreed. |
-| **helpless** | `feasibility: 'impossible'` — the button does nothing and the game explains, cheerfully, why. |
+| **helpless** | `feasibility: 'never-in-reach'` — the button does nothing and the game explains, cheerfully, why. |
 | **overwhelmed** | The receipt. Thirty weighted rows, eight of them fixed. *(Partly built — see Roadmap.)* |
 | **strain** | `feasibility: 'affordable'` but expensive: you can do it, and it will cost you the rest of the night. |
 
@@ -79,11 +79,11 @@ side is the **tendency**; the gap is the **resistance** of the other path.
 
 - Press the tendency → it happens. Free.
 - Press the other one → it costs `resistance × 2.2` energy, and:
-  - **affordable** — she does it, and pays.
-  - **out of reach** — she tries, empties out, and does the tendency. Trying costs
-    the same as succeeding. This is not a bug.
-  - **impossible** — nothing happens at all. There is no arrangement of *this*
-    life in which that act occurs tonight.
+  - **affordable** — she does it, and pays: she **overrode** it.
+  - **emptied out** — the cost is more than she has now but within her ceiling.
+    She tries, empties out, and does the tendency. This is not a bug.
+  - **never in reach** — the cost is above her ceiling. Nothing happens at all.
+    There is no arrangement of *this* life in which that act occurs tonight.
 
 **There is no chance.** The same history and the same press always produce the
 same act. An earlier version rolled dice on affordable resists; that was removed

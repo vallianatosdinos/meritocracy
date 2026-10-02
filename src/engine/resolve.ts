@@ -124,9 +124,9 @@ const resistanceToSuccessChance = (resistance: number): number => {
 }
 
 const feasibilityOf = (cost: number, resources: Resources): Feasibility => {
-  if (cost > TUNING.absoluteEnergyCeiling) return 'impossible'
-  if (cost > resources.energyCap) return 'impossible'
-  if (cost > resources.energy) return 'out-of-reach'
+  if (cost > TUNING.absoluteEnergyCeiling) return 'never-in-reach'
+  if (cost > resources.energyCap) return 'never-in-reach'
+  if (cost > resources.energy) return 'empties-out'
   return 'affordable'
 }
 

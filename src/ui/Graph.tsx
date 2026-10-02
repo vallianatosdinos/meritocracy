@@ -27,6 +27,7 @@ const TOP_PAD = 14
 const CARD_GAP = 30
 const EST_HEADER = 170
 const EST_CARD = 420
+const GHOST_GAP = 40
 
 const useWidth = (): number => {
   const [w, setW] = useState(() => (typeof window === 'undefined' ? 402 : window.innerWidth))
@@ -131,6 +132,23 @@ export const Graph = ({
 
   const nodes = [...model.nodes.values()]
 
+  // The anchor act is marked from the first question: a double-ringed node
+  // stands below the explored tree until a row of its forks exists, so the
+  // player always sees where the life is heading. It shows the act, never how
+  // hard it will be.
+  const anchorDepth = path.forks.findIndex((f) => f.anchor)
+  const anchorFork = anchorDepth >= 0 ? path.forks[anchorDepth] : undefined
+  const deepest = model.rows.length > 0 ? model.rows[model.rows.length - 1]!.depth : 0
+  const activeNode = model.nodes.get(model.activeKey)
+  const ghost =
+    anchorFork && activeNode && deepest < anchorDepth
+      ? {
+          x: cx(activeNode),
+          y: contentH - ROW_GAP + GHOST_GAP + 30,
+          away: anchorDepth - activeNode.depth,
+        }
+      : null
+
   return (
     <div className="graph" ref={scroller}>
       <div className="graph-canvas" style={{ width, height: contentH + 600 }}>
@@ -161,6 +179,12 @@ export const Graph = ({
               )
             }),
           )}
+          {ghost && (
+            <path
+              className="wire w-ghost"
+              d={`M ${ghost.x} ${ghost.y - GHOST_GAP + 6} L ${ghost.x} ${ghost.y}`}
+            />
+          )}
         </svg>
 
         {model.rows.map((row) => {
@@ -171,7 +195,7 @@ export const Graph = ({
           return (
             <div
               key={`h${row.depth}`}
-              className="row-question"
+              className="scene-header"
               ref={(el) => {
                 if (el) headerEls.current.set(row.depth, el)
                 else headerEls.current.delete(row.depth)
@@ -180,21 +204,21 @@ export const Graph = ({
             >
               {fork ? (
                 <>
-                  <div className="rq-top">
-                    <span className="rq-scale" title={SCALE_LABELS[fork.scale]}>
+                  <div className="sh-top">
+                    <span className="sh-scale" title={SCALE_LABELS[fork.scale]}>
                       {SCALE_SHORT[fork.scale]}
                     </span>
-                    <span className="rq-when">{fork.when}</span>
+                    <span className="sh-when">{fork.when}</span>
                     {row.keys.length > 1 && (
-                      <span className="rq-count">{row.keys.length} forks</span>
+                      <span className="sh-count">{row.keys.length} forks</span>
                     )}
                   </div>
-                  <p className="rq-prose">{fork.prose}</p>
+                  <p className="sh-prose">{fork.prose}</p>
                 </>
               ) : (
-                <div className="rq-top">
-                  <span className="rq-scale">END</span>
-                  <span className="rq-when">After</span>
+                <div className="sh-top">
+                  <span className="sh-scale">END</span>
+                  <span className="sh-when">After</span>
                 </div>
               )}
             </div>
@@ -205,10 +229,11 @@ export const Graph = ({
           const row = model.rows.find((r) => r.depth === n.depth)
           if (!row) return null
           const reference = row.referenceKey ? (model.nodes.get(row.referenceKey) ?? null) : null
+          const isAnchor = n.depth === anchorDepth
           return (
             <div
               key={n.key}
-              className="card-slot"
+              className={`card-slot${isAnchor ? ' anchor' : ''}`}
               style={{ left: cx(n) - cardW / 2, top: cardTop(n) }}
               ref={(el) => {
                 if (el) cardEls.current.set(n.key, el)
@@ -232,9 +257,30 @@ export const Graph = ({
                 onFocus={onFocus}
                 onRestart={onRestart}
               />
+              {isAnchor && <span className="anchor-label">anchor act</span>}
             </div>
           )
         })}
+
+        {ghost && anchorFork && (
+          <div
+            className="anchor-ghost"
+            style={{ left: ghost.x - cardW / 2, top: ghost.y, width: cardW }}
+          >
+            <div className="ag-card">
+              <div className="sh-top">
+                <span className="sh-scale" title={SCALE_LABELS[anchorFork.scale]}>
+                  {SCALE_SHORT[anchorFork.scale]}
+                </span>
+                <span className="sh-when">{anchorFork.when}</span>
+              </div>
+              <p className="ag-act">{path.anchorAct}</p>
+            </div>
+            <span className="anchor-label">
+              anchor act &middot; {ghost.away} {ghost.away === 1 ? 'question' : 'questions'} on
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -17,7 +17,7 @@ export const TUNING = {
    */
   energyPerResistance: 2.2,
 
-  /** The best energy ceiling any life in this build can reach. Defines 'impossible'. */
+  /** The best energy ceiling any life in this build can reach. Defines 'never-in-reach'. */
   absoluteEnergyCeiling: 100,
 
   /** Sleep debt is the cheapest, most insulting lever in the game. */

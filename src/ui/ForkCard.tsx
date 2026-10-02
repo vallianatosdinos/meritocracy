@@ -139,14 +139,14 @@ const spentLine = (r: ForkRecord): string => {
   switch (r.outcome) {
     case 'flowed':
       return 'free · the way she was going'
-    case 'resisted':
+    case 'overrode':
       return `she overrode it · cost ${r.energySpent} of ${r.energyBefore}`
     case 'failed':
       return `she tried · cost ${r.energySpent} anyway`
-    case 'blocked':
-      return r.energySpent > 0
-        ? `she tried and emptied out · ${r.energySpent}`
-        : 'never in reach'
+    case 'emptied-out':
+      return `she tried and emptied out · ${r.energySpent}`
+    case 'never-in-reach':
+      return 'never in reach'
   }
 }
 
@@ -304,18 +304,18 @@ export const ForkCard = ({
                       className={`chip ${
                         o.isTendency
                           ? 'free'
-                          : o.feasibility === 'impossible'
-                            ? 'impossible'
-                            : o.feasibility === 'out-of-reach'
-                              ? 'oor'
+                          : o.feasibility === 'never-in-reach'
+                            ? 'never-in-reach'
+                            : o.feasibility === 'empties-out'
+                              ? 'empties-out'
                               : 'cost'
                       }`}
                     >
                       {o.isTendency
                         ? 'free'
-                        : o.feasibility === 'impossible'
+                        : o.feasibility === 'never-in-reach'
                           ? 'no road here'
-                          : `cost ${o.energyCost}${o.feasibility === 'out-of-reach' ? ' · more than she had' : ''}`}
+                          : `cost ${o.energyCost}${o.feasibility === 'empties-out' ? ' · more than she had' : ''}`}
                     </span>
                   </div>
                   <Items pull={pulls[arm]} />

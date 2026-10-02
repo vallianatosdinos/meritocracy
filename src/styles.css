@@ -167,31 +167,46 @@ button.act.big { font-size: 0.8rem; padding: 0.8rem 1.2rem; }
 .wire { fill: none; stroke-linecap: round; }
 .wire.w-active { stroke: var(--warm); stroke-width: 3; }
 .wire.w-parallel { stroke: var(--cold); stroke-width: 2; opacity: 0.65; }
+.wire.w-ghost { stroke: var(--ink-faint); stroke-width: 1.5; stroke-dasharray: 1 7; opacity: 0.7; }
 .wire.w-unexplored { stroke: var(--ink-faint); stroke-width: 2; stroke-dasharray: 4 6; opacity: 0.6; }
 
-/* The question, once per row, above whichever fork is in view. */
-.row-question {
+/* The scene header: once per row, above whichever fork is in view. */
+.scene-header {
   position: absolute; z-index: 2;
   /* Opaque, so a wire arriving from the row above passes behind the question
      instead of striking through its prose. */
   background: var(--bg); padding-bottom: 4px;
   transition: left 420ms cubic-bezier(0.22, 0.75, 0.2, 1);
 }
-.rq-top {
+.sh-top {
   display: flex; align-items: baseline; gap: 0.55rem;
   border-bottom: 1px solid var(--rule); padding-bottom: 0.4rem; margin-bottom: 0.6rem;
 }
-.rq-scale { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em; color: var(--ink-faint); }
-.rq-when { font-size: 0.92rem; color: var(--ink-dim); flex: 1; }
-.rq-count {
+.sh-scale { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em; color: var(--ink-faint); }
+.sh-when { font-size: 0.92rem; color: var(--ink-dim); flex: 1; }
+.sh-count {
   font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--cold);
 }
-.rq-prose { margin: 0; font-size: 1rem; line-height: 1.55; color: var(--ink); }
+.sh-prose { margin: 0; font-size: 1rem; line-height: 1.55; color: var(--ink); }
 
 /* ---- a fork ---- */
 
 .card-slot { position: absolute; z-index: 1; }
+
+/* The anchor act: a double ring, from the first question to the last. */
+.card-slot.anchor > .fork-card,
+.ag-card { outline: 1px solid var(--ink-dim); outline-offset: 4px; }
+.anchor-label {
+  display: block; margin-top: 0.75rem; text-align: center;
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-dim);
+}
+.card-slot.anchor .anchor-label { position: absolute; left: 0; right: 0; top: 100%; }
+.anchor-ghost { position: absolute; z-index: 1; }
+.ag-card { padding: 0.8rem; border: 1px dashed var(--ink-faint); background: var(--bg); }
+.ag-card .sh-top { margin-bottom: 0.45rem; }
+.ag-act { margin: 0; font-size: 0.98rem; line-height: 1.5; color: var(--ink-dim); font-style: italic; }
 
 .fork-card {
   position: relative; display: flex; flex-direction: column; gap: 0.75rem;
@@ -299,7 +314,7 @@ button.act.big { font-size: 0.8rem; padding: 0.8rem 1.2rem; }
   border: 1px solid var(--rule); color: var(--ink-faint);
 }
 .chip.cost { color: var(--warm); border-color: rgba(200, 162, 95, 0.45); }
-.chip.oor, .chip.impossible { color: var(--alarm); border-color: rgba(180, 86, 75, 0.45); }
+.chip.empties-out, .chip.never-in-reach { color: var(--alarm); border-color: rgba(180, 86, 75, 0.45); }
 .r-item {
   display: grid; grid-template-columns: 2rem 1fr auto; gap: 0.25rem;
   align-items: start; padding: 0.16rem 0; border-top: 1px solid #1d1d24;
