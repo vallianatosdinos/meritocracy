@@ -12,6 +12,20 @@ import {
 } from '../engine'
 import { activeHead, exploredKeys, type Canon, type Exploration } from './explore'
 
+/**
+ * What one press left in her: every trait it moved, what it did to her energy
+ * ceiling, and the facts it added to her history. Measured, not read off the
+ * content -- the difference between her before this fork and after it -- so it
+ * is exactly what every later fork inherits.
+ */
+export interface Effect {
+  traits: Array<{ trait: TraitId; delta: number }>
+  /** Change in the most energy she can hold from the next fork on. */
+  ceiling: number
+  /** Labels of the causes this added to her history. */
+  causes: string[]
+}
+
 export interface ArmView {
   arm: 0 | 1
   /** The fork this answer leads to. */
@@ -25,6 +39,8 @@ export interface ArmView {
   joined: boolean
   /** What happened when they did. The child's record at this depth. */
   record: ForkRecord | null
+  /** What it left in her. null until pressed. */
+  effect: Effect | null
   /** The active life went this way. */
   onActivePath: boolean
 }
@@ -109,6 +125,19 @@ export const canonOf = (path: LifePath, seed: number, cache: Map<string, RunResu
 
 export const MEASURES: Measure[] = [...TRAITS, 'energy']
 
+const effectOf = (before: RunResult, after: RunResult): Effect => {
+  const traits = TRAITS.map((trait) => ({
+    trait,
+    delta: Math.round(after.traits[trait].value - before.traits[trait].value),
+  })).filter((d) => d.delta !== 0)
+  const had = new Set(before.factors.map((f) => f.id))
+  return {
+    traits,
+    ceiling: after.resources.energyCap - before.resources.energyCap,
+    causes: after.factors.filter((f) => !had.has(f.id)).map((f) => f.label),
+  }
+}
+
 /**
  * Build what the screen shows.
  *
@@ -149,6 +178,7 @@ export const buildGraph = (
             played,
             joined: played && childKey !== key + arm,
             record: played ? (runOf(key + arm).records[depth] ?? null) : null,
+            effect: played ? effectOf(run, runOf(key + arm)) : null,
             onActivePath: played && explored.has(childKey) && active.startsWith(childKey),
           }
         }) as [ArmView, ArmView])

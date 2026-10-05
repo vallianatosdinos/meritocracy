@@ -10,7 +10,7 @@ import {
   type ForkRecord,
   type LifePath,
 } from '../engine'
-import type { Measure, NodeView, RowView } from './graph'
+import type { Effect, Measure, NodeView, RowView } from './graph'
 import { MEASURES } from './graph'
 import { ENERGY_ARRIVAL } from './energy'
 import { pullShare, splitPulls, type ArmPull } from './pulls'
@@ -138,6 +138,47 @@ const Items = ({ pull }: { pull: ArmPull }): JSX.Element => {
           <span className="wt">{num(pull.folded.sum)}</span>
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * What the press left in her, under its outcome. This is the part that
+ * travels: every fork below inherits these numbers.
+ */
+const Left = ({ effect }: { effect: Effect }): JSX.Element => {
+  const nothing = effect.traits.length === 0 && effect.ceiling === 0 && effect.causes.length === 0
+  return (
+    <div className="left">
+      <p className="left-head">{nothing ? 'it left nothing in her' : 'it left in her'}</p>
+      {(effect.traits.length > 0 || effect.ceiling !== 0) && (
+        <div className="left-chips">
+          {effect.traits.map(({ trait, delta }) => (
+            <span
+              key={trait}
+              className={`trait-chip ${helps(trait, delta) ? 'good' : 'bad'}`}
+              title={TRAIT_META[trait].blurb}
+            >
+              {LABEL[trait]}
+              <b>{sign(delta)}</b>
+            </span>
+          ))}
+          {effect.ceiling !== 0 && (
+            <span
+              className={`trait-chip ${effect.ceiling > 0 ? 'good' : 'bad'}`}
+              title="The most energy she can hold from the next fork on"
+            >
+              Energy ceiling
+              <b>{sign(effect.ceiling)}</b>
+            </span>
+          )}
+        </div>
+      )}
+      {effect.causes.map((c) => (
+        <p key={c} className="left-cause">
+          + &ldquo;{c}&rdquo; joins her history
+        </p>
+      ))}
     </div>
   )
 }
@@ -295,10 +336,11 @@ export const ForkCard = ({
                   )}
                   <p className="narration">{r.narration}</p>
                   <p className="spent">{spentLine(r)}</p>
+                  {a.effect && <Left effect={a.effect} />}
                   {a.joined && (
                     <p className="joined">
-                      nothing in her changed &middot; this branch joins &ldquo;
-                      {fork.options[r.resolvedIndex].label}&rdquo;
+                      exactly as if you had pressed &ldquo;{fork.options[r.resolvedIndex].label}&rdquo;
+                      &middot; this branch joins it
                     </p>
                   )}
                   {opt.aside && <p className="aside">{opt.aside}</p>}

@@ -115,6 +115,30 @@ describe('joined branches', () => {
   })
 })
 
+describe('what a press leaves in her', () => {
+  it('is exactly the change the next fork inherits', () => {
+    for (let seed = 0; seed < 20; seed++) {
+      const g = buildGraph(path, seed, fromHeads(['0', '1']), new Map())
+      const root = g.nodes.get('')
+      for (const arm of [0, 1] as const) {
+        const effect = root?.arms?.[arm].effect
+        const child = g.nodes.get(String(arm))
+        expect(effect).toBeTruthy()
+        expect(effect?.traits.length).toBeGreaterThan(0)
+        for (const { trait, delta } of effect?.traits ?? []) {
+          expect(Math.abs((child?.values[trait] ?? 0) - (root?.values[trait] ?? 0) - delta)).toBeLessThanOrEqual(1)
+        }
+        expect(effect?.causes.length).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('is not worked out for an answer nobody pressed', () => {
+    const g = buildGraph(path, 1, fromHeads(['0']), new Map())
+    expect(g.nodes.get('')?.arms?.[1].effect).toBeNull()
+  })
+})
+
 describe('the graph', () => {
   it('lights what differs between forks exactly when the press changed what happened', () => {
     let lit = 0

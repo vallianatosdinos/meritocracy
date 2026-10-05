@@ -173,9 +173,15 @@ exploring feel like spending.
 reach, she does the other one and arrives exactly as if that had been pressed.
 The tree does not open a second branch for it: the two answers' branches join
 into one fork. The press is still shown -- its outcome, the confabulation, and a
-line saying nothing in her changed. Whether two presses join is only worked out
+line saying she ended up exactly as if the other answer had been pressed. Whether two presses join is only worked out
 once they have been pressed, so the tree's shape never gives away a fork's
 difficulty in advance.
+
+**Every outcome says what it left in her.** Under each pressed answer, the
+traits it moved, any change to her energy ceiling, and the causes it added to
+her history -- measured as the difference between her before the fork and
+after it, so it is exactly what every later fork inherits. Shown only once the
+answer is pressed.
 
 **The verdict line says only what is true.** "She was always going to" is kept
 for forks where the other answer was never in reach. Where it was in reach, the
