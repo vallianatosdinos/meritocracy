@@ -9,7 +9,7 @@ Every visible thing in the game gets exactly one name here, so a piece of feedba
 - The pictures are drawn mock-ups of the live screen. Numbered markers point at its parts, and a key beside or under each picture names them.
 - The diagrams show things a single screenshot cannot: the shape of the whole tree, and what happens when you press.
 
-Everything here describes the build currently live (`2998323`).
+Everything here describes the build currently live (`c7085f8`).
 
 ## The big picture: the tree
 
@@ -21,7 +21,7 @@ A row grows only as far as you explore it: row 2 has two forks because both answ
 
 The last row is the **anchor act**, the question the life exists for. Its forks wear a **double ring** and an "anchor act" label. Until you reach it, a dashed, double-ringed **anchor ghost** stands below the explored tree, showing the act and how many questions on it is, so you always see where the life is heading. It never says how hard the act will be.
 
-What you press and what it does to her are kept apart. When the answer you pressed was never in reach, she does the other one and arrives exactly as if you had pressed that. The two answers' branches then meet at one fork, a **joined branch**, and the pressed answer's outcome ends with a **join line**: "nothing in her changed · this branch joins …". Whether branches join is only worked out once both are pressed, so the tree never gives away a fork's difficulty early.
+What you press and what it does to her are kept apart. When the answer you pressed was never in reach, she does the other one and arrives exactly as if you had pressed that. The two answers' branches then meet at one fork, a **joined branch**, and the pressed answer's outcome ends with a **join line**: "exactly as if you had pressed … · this branch joins it". Whether branches join is only worked out once both are pressed, so the tree never gives away a fork's difficulty early.
 
 ## The play screen
 
@@ -45,7 +45,7 @@ A **fork card** reads top to bottom: how she got here, what she carries in, the 
 | 4 | **Lit measure** and **delta** | Bright: differs between forks of this row; the delta is its gap to the active fork |
 | 5 | **Played answer** and **result line** | An answer somebody pressed here, with what she did; red when confabulated |
 | 6 | **Unplayed answer** and **go-back line** | Dashed: nobody pressed it; behind Now the go-back line reads "see what happens" |
-| 7 | **Outcome** | Directly under its own answer, so two outcomes sit side by side: "you pressed this", then what happened |
+| 7 | **Outcome** | Directly under its own answer, so two outcomes sit side by side: "you pressed this", what happened, then its imprint |
 | 8 | **Confabulation** | Her own account of doing what you did not press |
 | 9 | **Narration** | What actually happened |
 | 10 | **Spend line** | What it cost her: flowed, overrode, emptied out, or never in reach |
@@ -59,6 +59,8 @@ A **fork card** reads top to bottom: how she got here, what she carries in, the 
 This card is a **side** fork, which is why its measures carry deltas against the active fork. The numbers are illustrative.
 
 Under the carry panel sits the **energy line**, which says how her energy arrived at this fork (the drawing above predates it). Before the final day every fork is its own occasion, so it reads "↻ energy reset · a new occasion, she starts this fork full". At the final day's first fork it reads "↻ energy reset · the last day begins", and after that, in gold, "→ energy carried over · same day, what she spent earlier is still spent".
+
+Each outcome ends with its **imprint**, headed "it left in her" (also newer than the drawing): a chip for every trait the answer moved (green if she will be glad of it, red if not), a chip for any change to her **energy ceiling**, and a line for each cause it added to her history, such as "+ 'Learning that going quiet works' joins her history". It is measured as her before this fork against her after it, so it is exactly what every later fork inherits, and it is how one answer makes a later one easier or harder.
 
 ## States and colours
 
@@ -109,7 +111,7 @@ Two screens come before the tree: the **title screen**, then the **roll**, which
 | **Life label** | "Life one · Ten Digits" — which authored life you are about to play |
 | **Anchor line** | "Nadia calls her father, or she does not." — the one act the life exists to explain |
 | **Roll for a life** | The button that starts a new life |
-| **Build stamp** | "build 2998323" — which version of the game is on screen |
+| **Build stamp** | "build c7085f8" — which version of the game is on screen |
 | **Life number** | The number that fixes this life's roll; the same number gives the same birth |
 
 **Roll screen**
@@ -193,6 +195,7 @@ Every name in this doc, alphabetically, with where it is explained.
 | Fork, fork card | One version of a question, reached by one history | Tree |
 | Fork count | "2 forks" in the scene header | Screen |
 | Go back, go-back line | Pressing an unplayed answer behind Now; free, and a new path starts there | Moving |
+| Imprint | "it left in her" under an outcome: the traits, ceiling and causes that answer changed, carried into every later fork | Fork card |
 | Issued | The part of a trait she was born with | Numbers |
 | Joined branch, join line | Two answers that lead to one fork because the press changed nothing; the line saying so under the outcome | Tree |
 | Life | Everything from one roll; another life means a new roll | Tree |
